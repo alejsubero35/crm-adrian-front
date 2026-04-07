@@ -1,0 +1,95 @@
+Excelente. Te dejo la guía para habilitar “venta por medida” desde el backend de forma dinámica: columnas a agregar, tipos, reglas y qué debe devolver el API para que el frontend lo use sin ajustes.
+
+columnas nuevas en tabla products
+sale_type
+Tipo: ENUM('unit','weight','volume') o VARCHAR(10) con restricción
+Default: 'unit'
+Uso: define si el producto se vende por unidad, peso o volumen.
+base_unit
+Tipo: ENUM('kg','l') o VARCHAR(5) nullable
+Uso: unidad base para el precio/stock cuando sale_type ≠ 'unit'.
+unit_label
+Tipo: VARCHAR(10) nullable
+Ejemplos: '/Kg', '/L'
+Uso: etiqueta para mostrar el precio por unidad (cosmético).
+step
+Tipo: DECIMAL(8,3) nullable
+Ejemplos: 0.100 para 100g; 0.500 para 500ml
+Uso: incremento para +/- en el carrito.
+min_qty
+Tipo: DECIMAL(8,3) nullable
+Ejemplos: 0.100 para mínimo 100g
+Uso: cantidad mínima permitida para venta por medida.
+regular_price
+Tipo: DECIMAL(12,2) NOT NULL DEFAULT 0
+Uso: precio de venta por unidad base: Bs/Kg o Bs/L si es por medida, o Bs/unidad si es unitario.
+stock
+Recomendado: cambiar a DECIMAL(12,3) para soportar fracciones en peso/volumen.
+Nota: si ya existe como INT, en Laravel necesitarás doctrine/dbal para usar change().
+Opcionales (si aún no están):
+
+slug: VARCHAR(191) único (opcional para mapping backend)
+image: VARCHAR(191) o TEXT (URL o path)
+avg_purchase_price: DECIMAL(12,2) (si necesitas costo promedio)
+ejemplo de migración (Laravel)
+Ojo: change() requiere "doctrine/dbal".
+
+
+<?phpSchema::table('products', function (Blueprint $table) {    $table->enum('sale_type', ['unit', 'weight', 'volume'])->default('unit');    $table->enum('base_unit', ['kg', 'l'])->nullable();    $table->string('unit_label', 10)->nullable();    $table->decimal('step', 8, 3)->nullable();    $table->decimal('min_qty', 8, 3)->nullable();    // Ajustar tipos    $table->decimal('regular_price', 12, 2)->default(0);    // Si stock ya existe y es INT:    // $table->decimal('stock', 12, 3)->change();    // $table->string('slug', 191)->nullable()->unique();    // $table->string('image')->nullable();    // $table->decimal('avg_purchase_price', 12, 2)->nullable();});
+reglas/validaciones de negocio
+sale_type = 'unit'
+base_unit, unit_label, step, min_qty: null o ignorados.
+stock: puede seguir siendo entero; frontend tratará cantidad como 1,2,3...
+sale_type ∈ {'weight','volume'}
+regular_price es precio por base_unit (Bs/Kg o Bs/L).
+stock representa cantidad disponible en base_unit (ej.: 12.500 kg).
+step no nulo recomendado (ej.: 0.100 para 100g; 0.500 para 500ml).
+min_qty no nulo recomendado (≥ step).
+Validaciones sugeridas:
+step > 0, min_qty ≥ step cuando sale_type ≠ 'unit'
+stock ≥ 0
+base_unit requerido cuando sale_type ≠ 'unit' (kg o l)
+unit_label coherente con base_unit ('/Kg' o '/L')
+respuesta del API (listar/buscar productos)
+Para el frontend, los endpoints deben devolver (por producto) estas claves:
+
+id: number
+name: string
+regularPrice: number (precio por unidad o por base_unit)
+inventoryCount: number (stock disponible; puede ser decimal para medida)
+image?: string
+slug?: string
+saleType?: 'unit' | 'weight' | 'volume'
+baseUnit?: 'kg' | 'l'
+unitLabel?: string (ej: '/Kg' o '/L')
+step?: number (incremento, ej: 0.1)
+minQty?: number (mínimo, ej: 0.1)
+Notas:
+
+El frontend ya contempla que si no viene regularPrice, puede usar price como fallback, pero idealmente envía regularPrice.
+productService hoy hace: inventoryCount = p.inventoryCount ?? p.stock ?? 0. Si envías inventoryCount, mejor.
+Estos campos deben existir tanto en paginado (/all-products-paginated, similar) como en búsqueda (/products/search).
+ejemplo JSON (unitario)
+
+{  "id": 12,  "name": "Galletas",  "regularPrice": 3.50,  "inventoryCount": 42,  "image": "/storage/products/galletas.png",  "slug": "galletas-12",  "saleType": "unit"}
+ejemplo JSON (por peso)
+
+{  "id": 101,  "name": "Queso Fresco (por Kg)",  "regularPrice": 120.00,         // Bs por Kg  "inventoryCount": 12.5,         // Kg disponibles  "image": "/storage/products/queso.png",  "slug": "queso-fresco-kg",  "saleType": "weight",  "baseUnit": "kg",  "unitLabel": "/Kg",  "step": 0.1,                    // 100 g por paso  "minQty": 0.1                   // mínimo 100 g}
+ejemplo JSON (por volumen)
+
+{  "id": 102,  "name": "Jugo Natural (por Litro)",  "regularPrice": 20.00,          // Bs por Litro  "inventoryCount": 30.0,         // Litros disponibles  "image": "/storage/products/jugo.png",  "slug": "jugo-natural-l",  "saleType": "volume",  "baseUnit": "l",  "unitLabel": "/L",  "step": 0.5,                    // 500 ml por paso  "minQty": 0.5                   // mínimo 500 ml}
+consideraciones en la factura (payload de venta)
+El frontend ya manda cantidades decimales cuando corresponde y “productUnit” se infiere como:
+
+Kg si saleType=weight o unitLabel contiene “kg”
+L si saleType=volume o unitLabel contiene “l”
+Pcs por defecto
+Si más adelante quieres que el backend reciba explícitamente la unidad por producto en el detalle, podemos incluir productUnit de forma directa en el payload (ahora se construye en el frontend).
+
+checklist backend
+ Agregar columnas sale_type, base_unit, unit_label, step, min_qty; ajustar regular_price y stock (decimal para medida).
+ Validar y poblar valores coherentes según tipo de venta.
+ En endpoints de listado/búsqueda, devolver: id, name, regularPrice, inventoryCount (decimal si aplica), saleType, baseUnit, unitLabel, step, minQty, image, slug.
+ Mantener el precio por la unidad base (Kg/L) para productos por medida.
+ Probar con productos mixtos (unitarios y por medida) para asegurar orden/paginación y búsqueda funcionan con los nuevos campos.
+Con esto, el frontend ya se adapta dinámicamente. Si me compartes el nombre real de tus endpoints o el esquema actual de productos, te preparo la migración exacta y el mapping en tus controladores.

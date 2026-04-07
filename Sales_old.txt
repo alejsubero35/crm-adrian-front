@@ -1,0 +1,694 @@
+import { Card } from '@/components/ui/card';
+import { useRef, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/useAuth';
+import { useCashRegister } from '@/contexts/CashRegisterContext';
+import ModalAperturaCaja from '@/components/ModalAperturaCaja';
+import ModalCierreCaja from '@/components/ModalCierreCaja';
+import { Table, TableBody, TableHead, TableRow, TableCell, TableHeader } from '@/components/ui/table';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Input } from '@/components/ui/input';
+import { Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { actionButtonClasses } from '@/styles/actionButtons';
+import { useToast } from '@/hooks/use-toast';
+import { fetchAllInvoices, searchInvoices, fetchInvoicesByDate, type ApiInvoice } from '@/services/invoices';
+import { useT } from '@/i18n';
+
+// Ahora las ventas (facturas) se obtienen del backend en /invoices.
+
+export default function Sales() {
+  const t = useT('pages.sales');
+  const navigate = useNavigate();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const headerRef = useRef<HTMLHeadingElement | null>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const isMobile = useIsMobile();
+  const { user } = useAuth();
+  const { cajaAbierta, loadingCaja } = useCashRegister();
+  const [showAperturaModal, setShowAperturaModal] = useState(false);
+  const [showCierreModal, setShowCierreModal] = useState(false);
+  const { toast } = useToast();
+  const [invoices, setInvoices] = useState<ApiInvoice[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const recentSalesListRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Cargar facturas al montar
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        // intentar usar el token del usuario si existe
+        const token = (user as unknown as { token?: string; accessToken?: string } | null)?.token
+          ?? (user as unknown as { token?: string; accessToken?: string } | null)?.accessToken
+          ?? null;
+  const data = await fetchAllInvoices();
+        if (mounted) {
+          setInvoices(data || []);
+        }
+      } catch (e) {
+        console.error('Failed to load invoices', e);
+        if (mounted) {
+          setError(t('errors.loadList'));
+          toast({ title: t('toast.errorTitle'), description: t('toast.loadErrorDescription') });
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    })();
+    return () => { mounted = false; };
+  }, [toast, user]);
+
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 200);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Nota: la verificación del estado de caja se realiza únicamente en la vista
+  // del Punto de Venta (Index). En esta vista de Ventas no se debe forzar la
+  // apertura de la caja al montar, por eso eliminamos la verificación automática.
+
+  // Reflect the header computed color into a CSS variable on the container so cards can use it
+  useEffect(() => {
+    const headerEl = headerRef.current;
+    const containerEl = containerRef.current;
+    if (!headerEl || !containerEl) return;
+    const setVar = () => {
+      try {
+        const color = getComputedStyle(headerEl).color || '#000';
+        containerEl.style.setProperty('--header-color', color);
+      } catch {
+        containerEl.style.setProperty('--header-color', '#000');
+      }
+    };
+    setVar();
+    // update on resize in case fonts/themes change
+  const RO = (window as unknown as { ResizeObserver?: typeof ResizeObserver }).ResizeObserver;
+  let ro: ResizeObserver | null = null;
+    if (RO) {
+      try {
+        ro = new RO(setVar);
+        if (headerEl && ro && ro.observe) ro.observe(headerEl);
+      } catch {
+        ro = null;
+      }
+    }
+    window.addEventListener('resize', setVar);
+    return () => {
+      if (ro && ro.disconnect) ro.disconnect();
+      window.removeEventListener('resize', setVar);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    try {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch {
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const trimmed = (searchTerm || '').trim().toLowerCase();
+  const [dateFilter, setDateFilter] = useState<string>('');
+
+  const getClientName = (inv: ApiInvoice): string => {
+    if (typeof inv.client === 'string') return inv.client;
+    const fromClientObj = inv.client && (inv.client.name ?? inv.client.companyName ?? inv.client.customerName);
+    const fromCustomerObj = inv.customer && (inv.customer.name ?? inv.customer.companyName ?? inv.customer.customerName);
+    const fromCustomerName = inv.customerName;
+    return (
+      (fromClientObj && String(fromClientObj)) ||
+      (fromCustomerName && String(fromCustomerName)) ||
+      (fromCustomerObj && String(fromCustomerObj)) ||
+      ''
+    );
+  };
+  const toYYYYMMDD = (s: string) => (s || '').slice(0, 10);
+  const filteredInvoices = invoices; // resultados ya vienen filtrados por API
+
+  // Consultar API cuando cambien los filtros de texto o fecha
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const term = trimmed;
+        const hasTerm = Boolean(term);
+        const hasDate = Boolean(dateFilter);
+        if (hasTerm || hasDate) {
+          const params: Record<string, string> = {};
+          if (hasTerm) params.term = term;
+          if (hasDate) {
+            params.startDate = dateFilter;
+            params.endDate = dateFilter;
+          }
+          const res = await searchInvoices(params);
+          if (!active) return;
+          setInvoices(res || []);
+        } else {
+          const res = await fetchAllInvoices();
+          if (!active) return;
+          setInvoices(res || []);
+        }
+      } catch (e) {
+        if (!active) return;
+        setError(t('errors.query'));
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
+  }, [trimmed, dateFilter]);
+
+  const toNumber = (value: unknown): number => {
+    const n = Number(value ?? 0);
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const asLower = (v: unknown): string => (v == null ? '' : String(v)).trim().toLowerCase();
+
+  const isCreditInvoice = (inv: ApiInvoice): boolean => {
+    const pm = asLower((inv as any).paymentMethod);
+    const pms = Array.isArray((inv as any).paymentMethods) ? ((inv as any).paymentMethods as unknown[]) : [];
+    const pmsJoined = pms.map(asLower).join(' ');
+    const due = asLower((inv as any).dueDate || (inv as any).due_date);
+
+    const methodText = `${pm} ${pmsJoined}`;
+    if (/(credito|crédito|fiao)/.test(methodText)) return true;
+    if (due) return true;
+    return false;
+  };
+
+  const formatBs = (value: unknown) => {
+    const n = toNumber(value);
+    return `${n.toFixed(2)} Bs`;
+  };
+
+  const getExchangeRate = (): number | null => {
+    try {
+      const raw = window.localStorage.getItem('exchangeRate');
+      const n = Number(raw);
+      return Number.isFinite(n) && n > 0 ? n : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const formatUsd = (bsValue: unknown) => {
+    const rate = getExchangeRate();
+    const bs = toNumber(bsValue);
+    if (!rate) return null;
+    return (bs / rate).toFixed(2);
+  };
+
+  const summary = useMemo(() => {
+    const income = filteredInvoices.reduce((acc, inv) => acc + toNumber(inv.invoiceTotal ?? inv.netTotal ?? inv.total ?? inv.subTotal ?? inv.subtotal ?? 0), 0);
+    const cost = filteredInvoices.reduce((acc, inv) => acc + toNumber(inv.totalCost ?? 0), 0);
+    const profit = filteredInvoices.reduce(
+      (acc, inv) => acc + toNumber(inv.netProfit ?? (toNumber(inv.invoiceTotal ?? inv.netTotal ?? inv.total ?? 0) - toNumber(inv.totalCost ?? 0))),
+      0
+    );
+    const discount = filteredInvoices.reduce((acc, inv) => acc + toNumber(inv.discount ?? 0), 0);
+
+    const profitCollected = filteredInvoices.reduce((acc, inv) => {
+      const netTotal = toNumber(inv.invoiceTotal ?? inv.netTotal ?? inv.total ?? inv.subTotal ?? inv.subtotal ?? 0);
+      const netProfit = toNumber(inv.netProfit ?? (netTotal - toNumber(inv.totalCost ?? 0)));
+      const paid = toNumber(inv.totalPaid ?? inv.paid ?? 0);
+
+      const ratio = netTotal > 0 ? Math.min(1, Math.max(0, paid / netTotal)) : 0;
+      return acc + netProfit * ratio;
+    }, 0);
+
+    const profitPendingCredits = filteredInvoices
+      .filter(isCreditInvoice)
+      .reduce((acc, inv) => {
+        const netTotal = toNumber(inv.invoiceTotal ?? inv.netTotal ?? inv.total ?? inv.subTotal ?? inv.subtotal ?? 0);
+        const netProfit = toNumber(inv.netProfit ?? (netTotal - toNumber(inv.totalCost ?? 0)));
+        const paid = toNumber(inv.totalPaid ?? inv.paid ?? 0);
+        const ratio = netTotal > 0 ? Math.min(1, Math.max(0, paid / netTotal)) : 0;
+
+        const collected = netProfit * ratio;
+        return acc + (netProfit - collected);
+      }, 0);
+
+    const creditDue = filteredInvoices
+      .filter(isCreditInvoice)
+      .reduce((acc, inv) => {
+        const netTotal = toNumber(inv.invoiceTotal ?? inv.netTotal ?? inv.total ?? inv.subTotal ?? inv.subtotal ?? 0);
+        const paid = toNumber(inv.totalPaid ?? inv.paid ?? 0);
+        const due = Math.max(0, netTotal - paid);
+        return acc + due;
+      }, 0);
+
+    return {
+      income,
+      cost,
+      profit,
+      profitCollected,
+      profitPendingCredits,
+      discount,
+      creditDue,
+    };
+  }, [filteredInvoices]);
+
+  // Visual-only date formatter to DD-MM-YYYY
+  const formatDateDDMMYYYY = (s: string): string => {
+    const raw = (s || '').slice(0, 10); // try YYYY-MM-DD first
+    const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(raw);
+    if (m) {
+      const [, y, mo, d] = m;
+      return `${d}-${mo}-${y}`;
+    }
+    try {
+      const d = new Date(s);
+      if (isNaN(d.getTime())) return s || '';
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = String(d.getFullYear());
+      return `${dd}-${mm}-${yyyy}`;
+    } catch {
+      return s || '';
+    }
+  };
+
+  const formatStatus = (status: unknown) => {
+    if (status === 2 || status === '2' || status === 'paid') return t('status.pending');
+    if (status === 1 || status === '1' || status === 'active') return t('status.paid');
+    if (status === 0 || status === '0' || status === 'unpaid' || status === 'inactive') return t('status.pending');
+    if (!status) return t('status.unknown');
+    return String(status);
+  };
+
+  const renderStatusPill = (inv: ApiInvoice, totalDue: number) => {
+    const centsDue = Math.round(toNumber(totalDue) * 100);
+    const paidByAmount = centsDue <= 0;
+    const label = paidByAmount ? t('status.paid') : formatStatus(inv.status);
+    const isPaid = label === t('status.paid');
+    const base = 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium';
+    const classes = isPaid
+      ? `${base} bg-emerald-100 text-emerald-700`
+      : `${base} bg-amber-100 text-amber-800`;
+    return <span className={classes}>{label}</span>;
+  };
+
+  const renderCreditPill = () => {
+    const base = 'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium';
+    return <span className={`${base} bg-red-100 text-red-700`}>Crédito</span>;
+  };
+
+  const [expandedId, setExpandedId] = useState<string | number | null>(null);
+  const toggleExpanded = (id: string | number | null) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
+  return (
+    <div className="p-4">
+  <div ref={containerRef} className="max-w-7xl mx-auto mt-4 lg:mt-6 pb-32">
+        <div className="flex items-center justify-between mb-4">
+          <h1 ref={headerRef} className="text-2xl font-bold">{t('title')}</h1>
+         
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+          <Card className="p-4 rounded-xl border border-sky-100 shadow-sm bg-gradient-to-br from-sky-50 via-sky-100 to-sky-200">
+            <div className="text-xs text-slate-600">Ingresos Totales (Ventas)</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatBs(summary.income)}</div>
+            {formatUsd(summary.income) ? (
+              <div className="mt-1 text-xs text-slate-600">(${formatUsd(summary.income)})</div>
+            ) : null}
+          </Card>
+          <Card className="p-4 rounded-xl border border-indigo-100 shadow-sm bg-gradient-to-br from-indigo-50 via-indigo-100 to-indigo-200">
+            <div className="text-xs text-slate-600">Créditos por Cobrar</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatBs(summary.creditDue)}</div>
+            {formatUsd(summary.creditDue) ? (
+              <div className="mt-1 text-xs text-slate-600">(${formatUsd(summary.creditDue)})</div>
+            ) : null}
+          </Card>
+          <Card className="p-4 rounded-xl border border-fuchsia-100 shadow-sm bg-gradient-to-br from-fuchsia-50 via-fuchsia-100 to-fuchsia-200">
+            <div className="text-xs text-slate-600">Costo de Mercancía (Invertí)</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatBs(summary.cost)}</div>
+            {formatUsd(summary.cost) ? (
+              <div className="mt-1 text-xs text-slate-600">(${formatUsd(summary.cost)})</div>
+            ) : null}
+          </Card>
+          <Card className="p-4 rounded-xl border border-amber-100 shadow-sm bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200">
+            <div className="text-xs text-slate-600">Ganancia Devengada</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatBs(summary.profit)}</div>
+            {formatUsd(summary.profit) ? (
+              <div className="mt-1 text-xs text-slate-600">(${formatUsd(summary.profit)})</div>
+            ) : null}
+          </Card>
+          <Card className="p-4 rounded-xl border border-emerald-100 shadow-sm bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200">
+            <div className="text-xs text-slate-600">Ganancia Cobrada</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatBs(summary.profitCollected)}</div>
+            {formatUsd(summary.profitCollected) ? (
+              <div className="mt-1 text-xs text-slate-600">(${formatUsd(summary.profitCollected)})</div>
+            ) : null}
+          </Card>
+          <Card className="p-4 rounded-xl border border-rose-200 shadow-sm bg-gradient-to-br from-rose-50 via-rose-200 to-rose-300">
+            <div className="text-xs text-slate-600">Ganancia Pendiente (Créditos)</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatBs(summary.profitPendingCredits)}</div>
+            {formatUsd(summary.profitPendingCredits) ? (
+              <div className="mt-1 text-xs text-slate-600">(${formatUsd(summary.profitPendingCredits)})</div>
+            ) : null}
+          </Card>
+          <Card className="p-4 rounded-xl border border-slate-200 shadow-sm bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200">
+            <div className="text-xs text-slate-600">Dejé de ganar (Descuentos)</div>
+            <div className="mt-2 text-2xl font-extrabold text-slate-900">{formatBs(summary.discount)}</div>
+            {formatUsd(summary.discount) ? (
+              <div className="mt-1 text-xs text-slate-600">(${formatUsd(summary.discount)})</div>
+            ) : null}
+          </Card>
+        </div>
+
+        <div className="ml-4 mb-4 flex flex-wrap items-center gap-2 w-full">
+          <Input
+            placeholder={t('searchPlaceholder')}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-[260px]"
+          />
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="border rounded-md px-3 py-2 text-sm"
+          />
+        </div>
+
+        {loading ? (
+          <div className="w-full flex justify-center items-center py-12 text-sm text-gray-600">{t('loading')}</div>
+        ) : error ? (
+          <div className="w-full text-center text-red-600 py-8 text-sm">{error}</div>
+        ) : filteredInvoices.length === 0 ? (
+          <div className="w-full text-center text-gray-600 py-8 text-sm">{t('empty')}</div>
+        ) : (
+          <Card className="p-4">
+            {/* Desktop: tabla clásica */}
+            <div className="hidden sm:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-8 2xl:hidden" />
+                    <TableHead>{t('table.reference')}</TableHead>
+                    <TableHead>{t('table.date')}</TableHead>
+                    <TableHead>{t('table.customer')}</TableHead>
+                    <TableHead className="hidden 2xl:table-cell">{t('table.subtotal')}</TableHead>
+                    <TableHead className="hidden 2xl:table-cell">{t('table.transport')}</TableHead>
+                    <TableHead className="hidden 2xl:table-cell">{t('table.discount')}</TableHead>
+                    <TableHead>{t('table.netTotal')}</TableHead>
+                    <TableHead className="hidden xl:table-cell">Costo (Bs)</TableHead>
+                    <TableHead className="hidden xl:table-cell">Ganancia (Bs)</TableHead>
+                   {/*  <TableHead className="hidden 2xl:table-cell">{t('table.totalPaid')}</TableHead>
+                    <TableHead className="hidden 2xl:table-cell">{t('table.totalDue')}</TableHead> */}
+                    <TableHead>{t('table.status')}</TableHead>
+                    <TableHead className="hidden">{t('table.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredInvoices.map((inv, index) => {
+                    const rowId = inv.id ?? index;
+                    const keyBase = String(rowId);
+                    const reference = inv.reference ?? rowId ?? '';
+                    const customerName = (typeof inv.client === 'string'
+                      ? inv.client
+                      : (inv.client && (inv.client.name ?? inv.client.companyName ?? inv.client.customerName)))
+                      ?? (inv.customerName ?? (inv.customer && (inv.customer.name ?? inv.customer.companyName ?? inv.customer.customerName)))
+                      ?? '-';
+                    const date = inv.invoiceDate ?? inv.date ?? inv.saleDate ?? '';
+
+                    const subTotal = inv.subTotal ?? inv.subtotal ?? inv.total ?? inv.netTotal ?? 0;
+                    const transport = inv.transportCost ?? inv.transport ?? 0;
+                    const discount = inv.discount ?? 0;
+                    const netTotal = inv.invoiceTotal ?? inv.netTotal ?? toNumber(subTotal) + toNumber(transport) - toNumber(discount);
+                    const totalPaid = inv.totalPaid ?? inv.paid ?? 0;
+                    const totalDue = toNumber(netTotal) - toNumber(totalPaid);
+                    const totalCost = inv.totalCost ?? 0;
+                    const netProfit = inv.netProfit ?? (toNumber(netTotal) - toNumber(totalCost));
+                    const customerPhone = inv.customer?.phoneNumber ?? inv.customer?.phone ?? '';
+                    const dueDate = (inv as any).dueDate || (inv as any).due_date;
+                    const slug = inv.slug;
+                    const canEdit = Boolean(slug);
+
+                    return [
+                      <TableRow key={`${keyBase}-main`} className="align-top">
+                        <TableCell className="w-8 2xl:hidden">
+                          <button
+                            type="button"
+                            onClick={() => toggleExpanded(rowId as string | number)}
+                            className="flex items-center justify-center text-gray-500 hover:text-gray-800"
+                          >
+                            {expandedId === rowId ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </button>
+                        </TableCell>
+                        <TableCell className="text-blue-600 font-medium cursor-default">{String(reference)}</TableCell>
+                        <TableCell>{formatDateDDMMYYYY(String(date))}</TableCell>
+                        <TableCell>{String(customerName)}</TableCell>
+                        <TableCell className="hidden 2xl:table-cell">{formatBs(subTotal)}</TableCell>
+                        <TableCell className="hidden 2xl:table-cell">{formatBs(transport)}</TableCell>
+                        <TableCell className="hidden 2xl:table-cell">{formatBs(discount)}</TableCell>
+                        <TableCell>{formatBs(netTotal)}</TableCell>
+                        <TableCell className="hidden xl:table-cell">{formatBs(totalCost)}</TableCell>
+                        <TableCell className="hidden xl:table-cell">
+                          <span className={toNumber(netProfit) >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold'}>
+                            {formatBs(netProfit)}
+                          </span>
+                        </TableCell>
+                       {/*  <TableCell className="hidden 2xl:table-cell">{formatBs(totalPaid)}</TableCell>
+                        <TableCell className="hidden 2xl:table-cell">{formatBs(totalDue)}</TableCell> */}
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {renderStatusPill(inv, totalDue)}
+                            {isCreditInvoice(inv) ? renderCreditPill() : null}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className={`${actionButtonClasses.edit} h-7 w-7`}
+                              disabled={!canEdit}
+                              onClick={() => {
+                                if (!canEdit || !slug) return;
+                                navigate(`/ventas/editar/${encodeURIComponent(String(slug))}`);
+                              }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className={`${actionButtonClasses.delete} h-7 w-7`}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>,
+                      expandedId === rowId ? (
+                        <TableRow key={`${keyBase}-detail`} className="bg-muted/40 2xl:hidden">
+                          <TableCell />
+                          <TableCell colSpan={11} className="p-3">
+                            <div className="text-xs space-y-2">
+                              <div className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-1">
+                                {customerPhone && (
+                                  <>
+                                    <span className="font-semibold text-gray-500">{t('detail.customerPhone')}</span>
+                                    <span>{customerPhone}</span>
+                                  </>
+                                )}
+                                {isCreditInvoice(inv) && dueDate ? (
+                                  <>
+                                    <span className="font-semibold text-gray-500">Vence</span>
+                                    <span>{formatDateDDMMYYYY(String(dueDate))}</span>
+                                  </>
+                                ) : null}
+                                <span className="font-semibold text-gray-500 2xl:hidden">{t('table.subtotal')}</span>
+                                <span className="2xl:hidden">{formatBs(subTotal)}</span>
+                                <span className="font-semibold text-gray-500 2xl:hidden">{t('table.transport')}</span>
+                                <span className="2xl:hidden">{formatBs(transport)}</span>
+                                <span className="font-semibold text-gray-500 2xl:hidden">{t('table.discount')}</span>
+                                <span className="2xl:hidden">{formatBs(discount)}</span>
+                                <span className="font-semibold text-gray-500 2xl:hidden">{t('table.totalPaid')}</span>
+                                <span className="2xl:hidden">{formatBs(totalPaid)}</span>
+                                <span className="font-semibold text-gray-500 2xl:hidden">{t('table.totalDue')}</span>
+                                <span className="2xl:hidden">{formatBs(totalDue)}</span>
+                              </div>
+                              <div className="hidden">
+                                <span className="font-semibold text-gray-500">{t('detail.actions')}</span>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    className={`${actionButtonClasses.edit} h-8 w-8`}
+                                    disabled={!canEdit}
+                                    onClick={() => {
+                                      if (!canEdit || !slug) return;
+                                      navigate(`/ventas/editar/${encodeURIComponent(String(slug))}`);
+                                    }}
+                                  >
+                                    <Pencil className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    className={`${actionButtonClasses.delete} h-8 w-8`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : null,
+                    ];
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile: tarjetas detalladas por venta */}
+            <div className="sm:hidden mt-2 space-y-3">
+              {filteredInvoices.map((inv, index) => {
+                const reference = inv.reference ?? inv.id ?? '';
+                const customerName = (typeof inv.client === 'string' ? inv.client : (inv.client && (inv.client.name ?? inv.client.companyName ?? inv.client.customerName)))
+                  ?? (inv.customerName ?? (inv.customer && (inv.customer.name ?? inv.customer.companyName ?? inv.customer.customerName)))
+                  ?? '-';
+                const date = inv.invoiceDate ?? inv.date ?? inv.saleDate ?? '';
+
+                const subTotal = inv.subTotal ?? inv.subtotal ?? inv.total ?? inv.netTotal ?? 0;
+                const transport = inv.transportCost ?? inv.transport ?? 0;
+                const discount = inv.discount ?? 0;
+                const netTotal = inv.invoiceTotal ?? inv.netTotal ?? toNumber(subTotal) + toNumber(transport) - toNumber(discount);
+                const totalPaid = inv.totalPaid ?? inv.paid ?? 0;
+                const totalDue = toNumber(netTotal) - toNumber(totalPaid);
+                const totalCost = inv.totalCost ?? 0;
+                const netProfit = inv.netProfit ?? (toNumber(netTotal) - toNumber(totalCost));
+                const dueDate = (inv as any).dueDate || (inv as any).due_date;
+                const slug = inv.slug;
+                const canEdit = Boolean(slug);
+
+                return (
+                  <Card key={String(inv.id ?? index)} className="p-3">
+                    <div className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-xs">
+                      <div className="font-semibold text-gray-500">{t('table.reference')}</div>
+                      <div className="text-blue-600 font-semibold">{String(reference)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.date')}</div>
+                      <div>{formatDateDDMMYYYY(String(date))}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.customer')}</div>
+                      <div>{String(customerName)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.subtotal')}</div>
+                      <div>{formatBs(subTotal)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.transport')}</div>
+                      <div>{formatBs(transport)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.discount')}</div>
+                      <div>{formatBs(discount)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.netTotal')}</div>
+                      <div>{formatBs(netTotal)}</div>
+
+                      <div className="font-semibold text-gray-500">Costo</div>
+                      <div>{formatBs(totalCost)}</div>
+
+                      <div className="font-semibold text-gray-500">Ganancia</div>
+                      <div className={toNumber(netProfit) >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold'}>{formatBs(netProfit)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.totalPaid')}</div>
+                      <div>{formatBs(totalPaid)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.totalDue')}</div>
+                      <div>{formatBs(totalDue)}</div>
+
+                      <div className="font-semibold text-gray-500">{t('table.status')}</div>
+                      <div className="flex items-center gap-2">
+                        {renderStatusPill(inv, totalDue)}
+                        {isCreditInvoice(inv) ? renderCreditPill() : null}
+                      </div>
+
+                      {isCreditInvoice(inv) && dueDate ? (
+                        <>
+                          <div className="font-semibold text-gray-500">Vence</div>
+                          <div>{formatDateDDMMYYYY(String(dueDate))}</div>
+                        </>
+                      ) : null}
+                    </div>
+
+                    <div className="mt-3 flex items-center justify-end gap-2 hidden">
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className={`${actionButtonClasses.edit} h-8 w-8`}
+                        disabled={!canEdit}
+                        onClick={() => {
+                          if (!canEdit || !slug) return;
+                          navigate(`/ventas/editar/${encodeURIComponent(String(slug))}`);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        className={`${actionButtonClasses.delete} h-8 w-8`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </Card>
+        )}
+
+        {showAperturaModal && (
+          <ModalAperturaCaja userId={user?.id} onClose={() => setShowAperturaModal(false)} />
+        )}
+
+        {showCierreModal && cajaAbierta && (
+          <ModalCierreCaja userId={user?.id} arqueo={cajaAbierta} onClose={() => setShowCierreModal(false)} />
+        )}
+
+        <button
+          onClick={scrollToTop}
+          aria-label={t('scrollTopAria')}
+          className={[
+            "fixed z-50 right-4 bottom-20 p-3 rounded-full shadow-lg bg-brand-orange text-white transition-opacity hover:bg-brand-orange-2",
+            showScrollTop ? "opacity-100" : "opacity-0 pointer-events-none",
+            "sm:hidden"
+          ].join(' ')}
+        >
+          ↑
+        </button>
+      </div>
+    </div>
+  );
+}

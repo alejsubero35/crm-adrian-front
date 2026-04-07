@@ -1,0 +1,467 @@
+{
+  "common": {
+    "appName": "Venta Simplyfy",
+    "dashboard": "Dashboard",
+    "pos": "POS",
+    "actions": "Actions",
+    "search": "Search…",
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "clear": "Clear",
+    "close": "Close",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of",
+    "status": "Status",
+    "perPage": "Per page",
+    "results": "Results",
+    "showing": "Showing {shown} of {total}",
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "pos": {
+    "pendingSalesButton": "Pending Sales",
+    "save": "Save",
+    "cartEmpty": "Cart is empty",
+    "subtotal": "Subtotal:",
+    "taxLabel": "VAT (16%):",
+    "total": "Total:",
+    "usdRateLabel": "USD (Rate:",
+    "goToPayment": "Go to payment",
+    "addPaymentMethodTitle": "Add payment method:",
+    "amountPlaceholderUsd": "Amount in USD",
+    "amountPlaceholderBs": "Amount in Bs",
+    "addPayment": "Add payment",
+    "paymentsTitle": "Payments:",
+    "paidLabel": "Paid:",
+    "remainingLabel": "Remaining:",
+    "changeLabel": "Change:",
+    "processing": "Processing...",
+    "processingPaymentTitle": "PROCESSING PAYMENT",
+    "processingPaymentMessage": "Do not close this window until the operation is complete.",
+    "authCheckingTitle": "VERIFYING AUTHENTICATION",
+    "authCheckingMessage": "Please wait while we validate your session.",
+    "processPayment": "Process Payment",
+    "completeAmount": "Complete the amount",
+    "cancel": "Cancel",
+    "cartEmptyCompact": "Cart is empty",
+    "subtotalMetric": "Subtotal",
+    "taxMetric": "VAT (16%)",
+    "totalMetric": "Total",
+    "usdRef": "USD Ref:",
+    "selectMethod": "Select method",
+    "loadingMethods": "Loading methods...",
+    "noMethods": "No methods available",
+    "amountInLabel": "Amount in",
+    "amountExampleUsd": "Ex: 10.00",
+    "amountExampleBs": "Ex: 350.00",
+    "add": "Add",
+    "fillRemaining": "Pay full",
+    "paymentsHeading": "Payments",
+    "progressLabel": "Progress",
+    "readyLabel": "Ready",
+    "close": "Close",
+    "clientLabel": "Customer",
+    "selectClientPlaceholder": "Select a customer",
+    "selectClientTitle": "Select customer",
+    "newClientButton": "+ New",
+    "searchClientPlaceholder": "Search customer...",
+    "loading": "Loading...",
+    "noClientResults": "No results. You can create a new customer.",
+    "productsTitle": "Products",
+    "pendingSalesLabel": "Pending",
+    "pendingSalesAria": "Pending sales",
+    "searchProductsPlaceholder": "Search products...",
+    "searchProductsAria": "Search products",
+    "searchingLabel": "Searching...",
+    "noProducts": "No products found",
+    "noProductsFor": "No products found for \"{query}\"",
+    "loadMore": "Load more",
+    "loadingMore": "Loading more products...",
+    "noMoreProducts": "No more products",
+    "outOfStock": "Out of stock",
+    "noStock": "No stock",
+    "lowStock": "Low stock",
+    "addToCartAria": "Add to cart",
+    "categoryAll": "All categories",
+    "categoryFlour": "Flours",
+    "categoryGrains": "Grains",
+    "categoryDairy": "Dairy",
+    "categoryDrinks": "Drinks",
+    "categoryCleaning": "Cleaning",
+    "cartSheetTitle": "Purchase summary",
+    "cartSheetTotalLabel": "Total",
+    "cartSheetItemsLabel": "item(s)",
+    "paymentMethodUsd": "Dollars",
+    "paymentMethodBs": "Cash Bs.",
+    "paymentMethodDebit": "Debit card",
+    "paymentMethodMovil": "Mobile payment",
+    "subscriptionLabel": "Subscription",
+    "accountSettingsLabel": "Account settings",
+    "logoutLabel": "Logout"
+  },
+  "tenant": {
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Quick overview of sales activity",
+      "actions": {
+        "export": "Export",
+        "goUpAria": "Go to top"
+      },
+      "metrics": {
+        "weeklySales": "Weekly sales",
+        "newUsers": "Recurring customers",
+        "purchaseOrders": "Purchase orders",
+        "messages": "Messages"
+      },
+      "sections": {
+        "productsUnitsSold": "Products - Units sold",
+        "salesLastWeek": "Sales (last week)",
+        "recurringClients": "Recurring customers",
+        "productDistribution": "Product distribution",
+        "recentSales": "Recent sales",
+        "lastSixSales": "Last 6 sales"
+      },
+      "labels": {
+        "sales": "Sales",
+        "products": "Products",
+        "lastPurchase": "Last purchase",
+        "visits": "visits",
+        "finalConsumer": "Final consumer",
+        "items": "items"
+      },
+      "empty": {
+        "noData": "No data"
+      }
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Super Admin Dashboard",
+      "subtitle": "Centralized tenant and subscription management.",
+      "metrics": {
+        "totalTenants": "Total tenants",
+        "totalTenantsHint": "+2 since last month",
+        "activeSubscriptions": "Active subscriptions",
+        "activeSubscriptionsHint": "83% conversion",
+        "monthlyRevenue": "Monthly revenue",
+        "monthlyRevenueHint": "+19% since last month",
+        "overduePayments": "Overdue payments",
+        "overduePaymentsHint": "Needs attention"
+      },
+      "sections": {
+        "recentTenants": "Recent tenants",
+        "recentTenantsPlaceholder": "Latest registrations...",
+        "systemActivity": "System activity",
+        "systemActivityPlaceholder": "Recent logs..."
+      }
+    },
+    "navigationAdminPage": {
+      "title": "Manage Navigation",
+      "subtitle": "Manage dynamic menu items with multi-pack icon support, hierarchy and filtering by permissions and features.",
+      "newItem": "New item",
+      "confirm": {
+        "delete": "Delete item?"
+      },
+      "toast": {
+        "loadErrorTitle": "Error loading navigation",
+        "deletedTitle": "Deleted",
+        "deletedDescription": "Item deleted.",
+        "deleteErrorTitle": "Error deleting"
+      },
+      "table": {
+        "title": "Menu items",
+        "total": "Total: {total}",
+        "loading": "Loading...",
+        "columns": {
+          "icon": "Icon",
+          "name": "Name",
+          "path": "Path",
+          "active": "Active",
+          "actions": "Actions"
+        }
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "emptyState": {
+        "message": "There are no navigation items yet.\nCreate the first one using the \"New item\" button."
+      }
+    },
+    "navigationEditor": {
+      "title": "Navigation",
+      "central": "Central",
+      "tenant": "Tenant",
+      "filters": {
+        "all": "All",
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "searchPlaceholder": "Search…",
+      "clear": "Clear",
+      "showing": "Showing {shown} of {total}",
+      "newItem": "New item",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "moveUngrouped": "Move to ungrouped",
+      "page": "Page {page} of {totalPages}",
+      "previous": "Previous",
+      "next": "Next",
+      "saveChanges": "Save changes",
+      "iconPicker": {
+        "title": "Choose icon ({pack})",
+        "searchPlaceholder": "Search icon...",
+        "close": "Close",
+        "noResults": "No results",
+        "page": "Page {page} of {totalPages}",
+        "previous": "Previous",
+        "next": "Next",
+        "iconifyHelp": "For Iconify, type the full icon name (e.g. mdi:account, fa6-solid:user) and press select.",
+        "iconifyPlaceholder": "iconify: prefix:name",
+        "select": "Select",
+        "preview": "Preview"
+      },
+      "row": {
+        "indentIncrease": "Increase indent",
+        "indentDecrease": "Decrease indent",
+        "noGroup": "No group",
+        "chooseIcon": "Choose icon",
+        "edit": "Edit",
+        "active": "Active",
+        "delete": "Delete",
+        "duplicate": "Duplicate"
+      },
+      "loading": {
+        "title": "Loading navigation",
+        "message": "Fetching items..."
+      },
+      "confirm": {
+        "title": "Confirm",
+        "deleteTitle": "Delete item",
+        "deleteDescription": "Delete this item? Its children will be deleted.",
+        "duplicateTitle": "Duplicate item",
+        "duplicateDescription": "Duplicate this item?"
+      },
+      "mobilePanel": {
+        "title": "Actions",
+        "description": "Filters, pagination and bulk actions",
+        "status": "Status",
+        "perPage": "Per page",
+        "results": "Results",
+        "clearFiltersSelection": "Clear filters / selection",
+        "bulkActions": "Bulk actions ({count})"
+      },
+      "tabs": {
+        "editor": "Editor",
+        "preview": "Preview"
+      }
+    }
+  },
+  "pages": {
+    "purchases": {
+      "title": "Purchase orders",
+      "searchPlaceholder": "Search by reference, supplier or date...",
+      "new": "New purchase",
+      "loading": "Loading purchases...",
+      "empty": "No purchases found.",
+      "errors": {
+        "loadList": "Could not load purchases list"
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error loading purchases"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "unknown": "-"
+      },
+      "table": {
+        "purchaseNo": "Purchase #",
+        "date": "Date",
+        "supplier": "Supplier",
+        "subtotal": "Subtotal",
+        "transport": "Shipping",
+        "discount": "Discount",
+        "netTotal": "Net total",
+        "totalPaid": "Total paid",
+        "totalDue": "Total due",
+        "status": "Status",
+        "actions": "Action"
+      },
+      "detail": {
+        "supplierPhone": "Supplier phone",
+        "actions": "Actions:"
+      }
+    },
+    "suppliers": {
+      "title": "Suppliers",
+      "searchPlaceholder": "Search suppliers...",
+      "new": "New supplier",
+      "loading": "Loading suppliers...",
+      "empty": "No suppliers found",
+      "searching": "Searching...",
+      "errors": {
+        "loadList": "Could not load suppliers list"
+      },
+      "overlay": {
+        "title": "PROCESSING",
+        "message": "Processing, please wait..."
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error loading suppliers",
+        "saveErrorDescription": "Could not save supplier",
+        "deleteErrorDescription": "Could not delete supplier",
+        "createdTitle": "Supplier created",
+        "createdDescription": "Supplier was created successfully",
+        "updatedTitle": "Supplier updated",
+        "updatedDescription": "Supplier was updated successfully",
+        "deletedTitle": "Supplier deleted",
+        "deletedDescription": "Supplier was deleted successfully"
+      },
+      "dialog": {
+        "createTitle": "New supplier",
+        "editTitle": "Edit supplier",
+        "confirmCreate": "Create",
+        "confirmEdit": "Update",
+        "cancel": "Cancel"
+      },
+      "form": {
+        "contactName": "Contact name",
+        "companyName": "Company name",
+        "supplierId": "Supplier ID",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address"
+      },
+      "actions": {
+        "editAria": "Edit supplier",
+        "deleteAria": "Delete supplier"
+      },
+      "card": {
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address"
+      }
+    },
+    "customers": {
+      "title": "Customers",
+      "searchPlaceholder": "Search customers...",
+      "new": "New",
+      "loading": "Loading customers...",
+      "empty": "No customers found",
+      "searching": "Searching...",
+      "errors": {
+        "loadList": "Could not load customers list"
+      },
+      "overlay": {
+        "title": "PROCESSING",
+        "message": "Processing, please wait..."
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error loading customers",
+        "saveErrorDescription": "Could not save customer",
+        "createdTitle": "Customer created",
+        "createdDescription": "Customer was created successfully",
+        "updatedTitle": "Customer updated",
+        "updatedDescription": "Customer was updated successfully",
+        "deletedTitle": "Customer deleted",
+        "deletedDescription": "Customer was deleted successfully"
+      },
+      "dialog": {
+        "createTitle": "New customer",
+        "editTitle": "Edit customer",
+        "confirmCreate": "Create",
+        "confirmEdit": "Update",
+        "cancel": "Cancel"
+      },
+      "form": {
+        "name": "Name",
+        "document": "Document",
+        "email": "Email",
+        "phone": "Phone"
+      },
+      "actions": {
+        "editAria": "Edit customer",
+        "deleteAria": "Delete customer"
+      },
+      "card": {
+        "email": "Email",
+        "phone": "Phone"
+      }
+    }
+    ,
+    "sales": {
+      "title": "Sales",
+      "searchPlaceholder": "Search by reference, customer or date...",
+      "loading": "Loading sales...",
+      "empty": "No sales found.",
+      "errors": {
+        "loadList": "Could not load sales list",
+        "query": "Error querying sales"
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error loading sales"
+      },
+      "status": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "unknown": "-"
+      },
+      "table": {
+        "reference": "Reference",
+        "date": "Date",
+        "customer": "Customer",
+        "subtotal": "Subtotal",
+        "transport": "Shipping",
+        "discount": "Discount",
+        "netTotal": "Net total",
+        "totalPaid": "Total paid",
+        "totalDue": "Total due",
+        "status": "Status",
+        "actions": "Action"
+      },
+      "detail": {
+        "customerPhone": "Customer phone",
+        "actions": "Actions:"
+      },
+      "scrollTopAria": "Scroll to top"
+    }
+  },
+  "layout": {
+    "header": {
+      "openMenu": "Open menu",
+      "collapseSidebar": "Collapse sidebar",
+      "expandSidebar": "Expand sidebar",
+      "openCart": "Open cart",
+      "cartEmptyTitle": "Cart is empty",
+      "cartEmptyDescription": "Add products before opening the cart",
+      "notificationsInbox": "Notifications inbox",
+      "unread": "{count} unread",
+      "allCaughtUp": "All caught up",
+      "markAllRead": "Mark all as read",
+      "noNotifications": "You have no notifications for now.",
+      "readLess": "Read less",
+      "readMore": "Read more",
+      "viewLess": "View less",
+      "viewMore": "View more",
+      "profile": "Profile",
+      "language": {
+        "es": "Español (ES)",
+        "en": "English (EN)",
+        "pt": "Português (PT)"
+      }
+    }
+  }
+}

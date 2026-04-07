@@ -1,0 +1,484 @@
+/* Modern, fluid typography and better defaults */
+/* Fonts: Nunito Sans primary, Public Sans & Inter as fallbacks */
+@import url('https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@300;400;500;600;700;800&family=Public+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 260 33% 98%;    /* #F8F7FC - Light purple background */
+    --foreground: 260 15% 20%;    /* #333333 with a purple tint */
+
+    --card: 0 0% 100%;          /* white */
+    --card-foreground: 260 15% 20%; /* #333333 with a purple tint */
+
+    --popover: 0 0% 100%;       /* white */
+    --popover-foreground: 260 15% 20%; /* #333333 with a purple tint */
+
+    --primary: 255 67% 75%;     /* #9b87f5 - Primary purple */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --secondary: 260 27% 54%;   /* #7E69AB - Secondary purple */
+    --secondary-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --muted: 260 33% 94%;       /* #E5DEFF - Soft purple */
+    --muted-foreground: 260 15% 45%; /* #737373 with a purple tint */
+
+    --accent: 255 67% 75%;      /* #9b87f5 - Primary purple */
+    --accent-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --destructive: 0 84.2% 60.2%; /* standard red */
+    --destructive-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --border: 260 33% 88%;      /* #D9D4E8 - Light purple border */
+    --input: 260 33% 88%;       /* #D9D4E8 - Light purple input */
+    --ring: 255 67% 75%;        /* #9b87f5 - Primary purple */
+
+    /* Gradient colors for top bar (header) - configurable via Theme Customizer */
+    --topbar-from: #0B5FFF;
+    --topbar-to: #00C7FF;
+
+    --radius: 0.5rem;
+
+  /* Sidebar on light theme: custom brand palette */
+  /* Fondo: #103B73, Iconos: #F2811D, Texto: blanco */
+  --sidebar-background: 213 76% 26%; /* ~#103B73 */
+  --sidebar-foreground: 0 0% 100%;   /* white text */
+  --sidebar-primary: 27 88% 53%;     /* ~#F2811D for highlights/icons */
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 213 55% 20%;    /* slightly darker navy for active/hover */
+  --sidebar-accent-foreground: 27 88% 53%;
+  --sidebar-border: 213 40% 35%;    /* subtle border on navy */
+  --sidebar-ring: 27 88% 53%;
+  }
+
+  .dark {
+    --background: 260 33% 15%;  /* #272235 - Dark purple background */
+    --foreground: 0 0% 100%;    /* #FFFFFF */
+
+    --card: 260 33% 20%;        /* slightly lighter than background */
+    --card-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --popover: 260 33% 20%;     /* slightly lighter than background */
+    --popover-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --primary: 255 67% 75%;     /* #9b87f5 - Primary purple */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --secondary: 260 27% 54%;   /* #7E69AB - Secondary purple */
+    --secondary-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --muted: 260 33% 25%;       /* slightly lighter than background */
+    --muted-foreground: 0 0% 85%; /* lighter version of foreground */
+
+    --accent: 260 27% 64%;      /* #9F87C7 - Lighter purple accent */
+    --accent-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 260 33% 30%;      /* #3B3252 - Darker purple border */
+    --input: 260 33% 30%;       /* #3B3252 - Darker purple input */
+    --ring: 255 67% 75%;        /* #9b87f5 - Primary purple */
+
+    /* Dark theme: keep sidebar consistent with brand colors */
+    --sidebar-background: 213 76% 20%; /* darker navy variant */
+    --sidebar-foreground: 0 0% 100%;   /* white */
+    --sidebar-primary: 27 88% 53%;     /* orange accent */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 213 60% 24%;
+    --sidebar-accent-foreground: 27 88% 53%;
+    --sidebar-border: 213 40% 32%;
+    --sidebar-ring: 27 88% 53%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+
+  html, body { @apply h-full; }
+
+  body {
+    @apply bg-background text-foreground h-full font-sans antialiased overflow-y-auto overflow-x-hidden;
+    /* improve legibility */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Hide global scrollbar while keeping scroll behaviour */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  body::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+
+  /* Animación para el logo del overlay
+   * 1) Fade-in + ligera subida al aparecer
+   * 2) Pequeña flotación continua para que se note la movilidad
+   */
+  .logo-fade-in {
+    animation:
+      logo-fade-in 0.7s ease-out forwards,
+      logo-float 2.4s ease-in-out 0.7s infinite;
+  }
+
+  @keyframes logo-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.94);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes logo-float {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  /* Fluid headings with clamp() and subtle negative tracking for a modern look */
+  h1 {
+    font-weight: 800; /* extra-bold for strong section titles */
+    font-size: clamp(1.75rem, 1.25rem + 1.8vw, 2.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-weight: 700;
+    font-size: clamp(1.5rem, 1.1rem + 1.2vw, 2.25rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  h3 {
+    font-weight: 600;
+    font-size: clamp(1.125rem, 0.95rem + 0.6vw, 1.5rem);
+    line-height: 1.25;
+  }
+  p {
+    font-size: clamp(0.95rem, 0.9rem + 0.2vw, 1rem);
+    line-height: 1.6;
+  }
+}
+
+/* Additional responsive helpers */
+@layer components {
+  .responsive-container {
+    @apply px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4;
+  }
+  
+  .responsive-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4;
+  }
+
+  /* Brand gradient buttons (reusable across the app) */
+  .btn-gradient-orange {
+    @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
+    background-image: linear-gradient(135deg, #e8761e, #ffb347);
+  }
+   .btn-primary-old {
+    @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
+    background-color: #1B91BF;
+  }
+  .btn-primary-old-hover:hover {
+    background-color: #6acaf0 !important;
+  }
+
+  .btn-primary-new {
+    @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
+    background-color: #103B73;
+  }
+
+  .btn-orange-new {
+    @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
+    background-color: #E67800;
+  }
+
+  .btn-red-new {
+    @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
+    background-color: #9B1C1C;
+  }
+  .btn-primary-red-hover:hover {
+    background-color: #d35656 !important;
+  }
+  .btn-red-new-hover:hover {
+    background-color: #d35656 !important;
+  }
+  /* Hover helpers for solid brand buttons */
+  .btn-primary-new-hover:hover {
+    background-color: #447bc4 !important;
+  }
+
+  .btn-orange-new-hover:hover {
+    background-color: #E67800 !important;
+  }
+
+  .btn-gradient-red {
+    @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
+    background-image: linear-gradient(135deg, #ef4444, #f97373);
+  }
+
+  /* Branded scrollbar for focused scroll areas (e.g. receipt modal) */
+  .scrollbar-brand-orange {
+    /* Firefox: thin scrollbar with soft orange track/thumb */
+    scrollbar-width: thin;
+    scrollbar-color: #f59e57 #fff7ed;
+  }
+
+  .scrollbar-brand-orange::-webkit-scrollbar {
+    width: 9px; /* slightly wider for better usability */
+  }
+
+  .scrollbar-brand-orange::-webkit-scrollbar-track {
+    background: #fff7ed; /* soft orange background */
+    border-radius: 9999px;
+  }
+
+  .scrollbar-brand-orange::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-image: linear-gradient(180deg, #f59e57, #f97316);
+    border: 2px solid #fff7ed; /* inner pill effect */
+  }
+
+  .scrollbar-brand-orange::-webkit-scrollbar-thumb:hover {
+    background-image: linear-gradient(180deg, #ea580c, #c2410c);
+  }
+
+  /* Minimal scrollbar: transparent track, only a thin thumb */
+  .scrollbar-minimal {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(17, 24, 39, 0.35) transparent;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb {
+    background: rgba(17, 24, 39, 0.35);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+    background: rgba(17, 24, 39, 0.55);
+    background-clip: content-box;
+  }
+
+  /* Glass + gradient brand surface helpers */
+  .surface-glass {
+    backdrop-filter: saturate(160%) blur(14px);
+    background: linear-gradient(
+      140deg,
+      rgba(255,255,255,0.72) 0%,
+      rgba(255,255,255,0.55) 40%,
+      rgba(255,255,255,0.35) 100%
+    );
+    box-shadow: 0 4px 16px -4px rgba(20,40,80,0.12), 0 2px 6px -1px rgba(20,40,80,0.08);
+  }
+
+  .brand-gradient-bg {
+    background-image: linear-gradient(135deg, var(--topbar-from), var(--topbar-to));
+  }
+
+  .brand-gradient-text {
+    background: linear-gradient(135deg, var(--topbar-from), var(--topbar-to));
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  .sidebar-item-modern {
+    @apply relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors;
+    background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0.35));
+  }
+  .dark .sidebar-item-modern {
+    background: linear-gradient(180deg, rgba(40,35,55,0.55), rgba(40,35,55,0.35));
+  }
+  .sidebar-item-modern:hover {
+    @apply bg-muted/80;
+  }
+  .sidebar-item-active {
+    box-shadow: 0 0 0 1px var(--topbar-from) inset, 0 0 0 1px rgba(255,255,255,0.4);
+    background: linear-gradient(135deg, rgba(11,95,255,0.12), rgba(0,199,255,0.15));
+  }
+  .dark .sidebar-item-active {
+    background: linear-gradient(135deg, rgba(155,135,245,0.18), rgba(0,199,255,0.15));
+  }
+
+  .sidebar-chevron {
+    transition: transform 0.25s cubic-bezier(.65,.05,.36,1);
+  }
+  .sidebar-chevron[data-open="true"] {
+    transform: rotate(180deg);
+  }
+
+  /* Modern card & panel system */
+  .card-pro {
+    @apply relative rounded-xl border border-border/70 bg-white/90 dark:bg-card/90 shadow-sm p-5;
+    backdrop-filter: blur(6px) saturate(140%);
+  }
+  .dark .card-pro { @apply border-border/40; }
+  .card-pro::before {
+    content: "";
+    position: absolute; inset: 0; border-radius: inherit;
+    background: linear-gradient(135deg, rgba(11,95,255,0.08), rgba(0,199,255,0.07));
+    pointer-events: none; opacity: .6;
+  }
+  .dark .card-pro::before {
+    background: linear-gradient(135deg, rgba(155,135,245,0.15), rgba(0,199,255,0.12));
+  }
+
+  .panel-section + .panel-section { @apply mt-6; }
+
+  .heading-xl {
+    @apply font-extrabold tracking-tight text-foreground;
+    font-size: clamp(2rem,1.6rem+1.2vw,2.8rem);
+    line-height: 1.1;
+  }
+  .heading-md {
+    @apply font-semibold tracking-tight text-foreground/90;
+    font-size: clamp(1.2rem,1.05rem+0.6vw,1.6rem);
+    line-height: 1.25;
+  }
+
+  .divider-soft {
+    @apply h-px w-full bg-gradient-to-r from-transparent via-border/70 to-transparent my-4;
+  }
+
+  .btn-brand {
+    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 disabled:pointer-events-none;
+    background: linear-gradient(135deg,var(--topbar-from),var(--topbar-to));
+  }
+  .btn-brand:hover { filter: brightness(1.08); }
+  .btn-brand:active { transform: translateY(1px); }
+
+  .input-modern {
+    @apply rounded-md border border-border/60 bg-white dark:bg-card px-3 py-2 text-sm shadow-inner placeholder:text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 transition-colors;
+  }
+  .dark .input-modern { @apply border-border/40; }
+
+  .grid-form {
+    @apply grid gap-5;
+    grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  }
+
+  .table-modern {
+    @apply w-full text-sm border border-border/60 rounded-lg overflow-hidden;
+  }
+  .table-modern thead tr { @apply bg-muted/70 text-muted-foreground; }
+  .table-modern th { @apply font-medium py-2 px-3 text-left; }
+  .table-modern td { @apply py-2 px-3 align-middle; }
+  .table-modern tbody tr { @apply border-t border-border/40 bg-white/70 dark:bg-card/70; }
+  .table-modern tbody tr:hover { @apply bg-muted/60 dark:bg-muted/20; }
+
+  .badge-active { @apply inline-flex items-center rounded-md bg-primary/10 text-primary px-2 py-0.5 text-xs font-medium; }
+  .badge-inactive { @apply inline-flex items-center rounded-md bg-destructive/10 text-destructive px-2 py-0.5 text-xs font-medium; }
+
+  .empty-state {
+    @apply flex flex-col items-center justify-center text-center gap-3 py-10;
+  }
+  .empty-state-icon {
+    @apply h-14 w-14 rounded-full bg-gradient-to-br from-primary/20 to-secondary/30 flex items-center justify-center text-primary shadow;
+  }
+
+  /* Semantic badges */
+  .badge-success { @apply inline-flex items-center rounded-md bg-green-500/15 text-green-600 dark:text-green-400 px-2 py-0.5 text-xs font-medium; }
+  .badge-warning { @apply inline-flex items-center rounded-md bg-yellow-400/20 text-yellow-700 dark:text-yellow-300 px-2 py-0.5 text-xs font-medium; }
+  .badge-info { @apply inline-flex items-center rounded-md bg-cyan-400/20 text-cyan-700 dark:text-cyan-300 px-2 py-0.5 text-xs font-medium; }
+  .badge-neutral { @apply inline-flex items-center rounded-md bg-muted text-muted-foreground px-2 py-0.5 text-xs font-medium; }
+
+  /* Skeleton loader */
+  @keyframes skeleton { 0% { background-position: -200px 0; } 100% { background-position: calc(200px + 100%) 0; } }
+  .skeleton { @apply relative overflow-hidden rounded-md bg-muted/70 dark:bg-muted/30; min-height: 0.75rem; }
+  .skeleton::after {
+    content:""; position:absolute; inset:0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+    background-size: 200px 100%; animation: skeleton 1.2s ease-in-out infinite;
+    mix-blend-mode: overlay;
+  }
+  .skeleton-inline { @apply skeleton inline-block align-middle; }
+  .skeleton-circle { @apply skeleton rounded-full; }
+  .skeleton-lg { min-height: 2.5rem; }
+  .skeleton-md { min-height: 1.5rem; }
+  .skeleton-sm { min-height: 0.75rem; }
+  .skeleton-table-row { @apply grid grid-cols-10 gap-3 py-2 px-3; }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     PANEL INDICATOR - Indicador lateral con forma de flecha/punta
+     Uso: <div className="panel-indicator panel-indicator-orange">
+  ═══════════════════════════════════════════════════════════════════ */
+  .panel-indicator {
+    @apply absolute left-0 top-0 bottom-0 w-1.5;
+    clip-path: polygon(
+      0% 8px,      /* Punta superior */
+      100% 0%,
+      100% 100%,
+      0% calc(100% - 8px),  /* Punta inferior */
+      50% calc(100% - 4px),
+      50% 4px
+    );
+  }
+  
+  /* Variante más suave - hexagonal */
+  .panel-indicator-hex {
+    @apply absolute left-0 top-0 bottom-0 w-2;
+    clip-path: polygon(
+      0% 12px,
+      50% 0%,
+      100% 0%,
+      100% 100%,
+      50% 100%,
+      0% calc(100% - 12px)
+    );
+  }
+
+  /* Colores de panel - Marca */
+  .panel-indicator-orange { @apply bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600; }
+  .panel-indicator-blue { @apply bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700; }
+  .panel-indicator-navy { background: linear-gradient(to bottom, #1B5DB0, #103B73, #0A2647); }
+  
+  /* Colores de panel - Secundarios */
+  .panel-indicator-emerald { @apply bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600; }
+  .panel-indicator-amber { @apply bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600; }
+  .panel-indicator-violet { @apply bg-gradient-to-b from-violet-400 via-violet-500 to-violet-600; }
+  .panel-indicator-pink { @apply bg-gradient-to-b from-pink-400 via-pink-500 to-pink-600; }
+  .panel-indicator-cyan { @apply bg-gradient-to-b from-cyan-400 via-cyan-500 to-cyan-600; }
+  .panel-indicator-slate { @apply bg-gradient-to-b from-slate-400 via-slate-500 to-slate-600; }
+
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
+/* Override: make Tailwind bg-gray-100 pure white app-wide */
+.bg-gray-100 {
+  background-color: #fff !important;
+}
+
+@media (max-width: 768px) {
+  * {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}

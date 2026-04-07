@@ -1,0 +1,467 @@
+{
+  "common": {
+    "appName": "Venta Simplyfy",
+    "dashboard": "Dashboard",
+    "pos": "POS",
+    "actions": "Acciones",
+    "search": "Buscar…",
+    "all": "Todos",
+    "active": "Activos",
+    "inactive": "Inactivos",
+    "clear": "Limpiar",
+    "close": "Cerrar",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página",
+    "of": "de",
+    "status": "Estado",
+    "perPage": "Por página",
+    "results": "Resultados",
+    "showing": "Mostrando {shown} de {total}",
+    "loading": "Cargando...",
+    "cancel": "Cancelar",
+    "save": "Guardar"
+  },
+  "pos": {
+    "pendingSalesButton": "Ventas Pendientes",
+    "save": "Guardar",
+    "cartEmpty": "El carrito está vacío",
+    "subtotal": "Subtotal:",
+    "taxLabel": "IVA (16%):",
+    "total": "Total:",
+    "usdRateLabel": "USD (Tasa:",
+    "goToPayment": "Ir a pago",
+    "addPaymentMethodTitle": "Agregar método de pago:",
+    "amountPlaceholderUsd": "Monto en USD",
+    "amountPlaceholderBs": "Monto en Bs",
+    "addPayment": "Agregar pago",
+    "paymentsTitle": "Pagos:",
+    "paidLabel": "Preparado:",
+    "remainingLabel": "Restante:",
+    "changeLabel": "Vuelto:",
+    "processing": "Procesando...",
+    "processingPaymentTitle": "PROCESANDO PAGO",
+    "processingPaymentMessage": "No cierres esta ventana hasta que finalice la operación.",
+    "authCheckingTitle": "VERIFICANDO AUTENTICACIÓN",
+    "authCheckingMessage": "Por favor espera mientras validamos tu sesión.",
+    "processPayment": "Procesar Pago",
+    "completeAmount": "Completa el monto",
+    "cancel": "Cancelar",
+    "cartEmptyCompact": "Carrito vacío",
+    "subtotalMetric": "Subtotal",
+    "taxMetric": "IVA (16%)",
+    "totalMetric": "Total",
+    "usdRef": "USD Ref:",
+    "selectMethod": "Seleccionar método",
+    "loadingMethods": "Cargando métodos...",
+    "noMethods": "Sin métodos disponibles",
+    "amountInLabel": "Monto en",
+    "amountExampleUsd": "Ej: 10.00",
+    "amountExampleBs": "Ej: 350.00",
+    "add": "Agregar",
+    "fillRemaining": "Pagar todo",
+    "paymentsHeading": "Pagos",
+    "progressLabel": "Progreso",
+    "readyLabel": "Listo",
+    "close": "Cerrar",
+    "clientLabel": "Cliente",
+    "selectClientPlaceholder": "Seleccione un cliente",
+    "selectClientTitle": "Seleccionar cliente",
+    "newClientButton": "+ Nuevo",
+    "searchClientPlaceholder": "Buscar cliente...",
+    "loading": "Cargando...",
+    "noClientResults": "No hay resultados. Puedes crear un cliente nuevo.",
+    "productsTitle": "Productos",
+    "pendingSalesLabel": "Pendientes",
+    "pendingSalesAria": "Ventas pendientes",
+    "searchProductsPlaceholder": "Buscar productos...",
+    "searchProductsAria": "Buscar productos",
+    "searchingLabel": "Buscando...",
+    "noProducts": "No se encontraron productos",
+    "noProductsFor": "No se encontraron productos para \"{query}\"",
+    "loadMore": "Cargar más",
+    "loadingMore": "Cargando más productos...",
+    "noMoreProducts": "No hay más productos",
+    "outOfStock": "Agotado",
+    "noStock": "Sin stock",
+    "lowStock": "Stock bajo",
+    "addToCartAria": "Agregar al carrito",
+    "categoryAll": "Todas las categorías",
+    "categoryFlour": "Harinas",
+    "categoryGrains": "Granos",
+    "categoryDairy": "Lácteos",
+    "categoryDrinks": "Bebidas",
+    "categoryCleaning": "Limpieza",
+    "cartSheetTitle": "Resumen de compras",
+    "cartSheetTotalLabel": "Total",
+    "cartSheetItemsLabel": "artículo(s)",
+    "paymentMethodUsd": "Dólares",
+    "paymentMethodBs": "Efectivo Bs.",
+    "paymentMethodDebit": "Débito",
+    "paymentMethodMovil": "Pago Móvil",
+    "subscriptionLabel": "Mi Suscripción",
+    "accountSettingsLabel": "Configuración de la cuenta",
+    "logoutLabel": "Cerrar sesión"
+  },
+  "tenant": {
+    "dashboard": {
+      "title": "Panel de control",
+      "subtitle": "Resumen rápido de la actividad de ventas",
+      "actions": {
+        "export": "Exportar",
+        "goUpAria": "Ir arriba"
+      },
+      "metrics": {
+        "weeklySales": "Ventas semanales",
+        "newUsers": "Clientes recurrentes",
+        "purchaseOrders": "Órdenes de compra",
+        "messages": "Mensajes"
+      },
+      "sections": {
+        "productsUnitsSold": "Productos - Unidades vendidas",
+        "salesLastWeek": "Ventas (última semana)",
+        "recurringClients": "Clientes recurrentes",
+        "productDistribution": "Distribución por producto",
+        "recentSales": "Ventas recientes",
+        "lastSixSales": "Últimas 6 ventas"
+      },
+      "labels": {
+        "sales": "Ventas",
+        "products": "Productos",
+        "lastPurchase": "Última compra",
+        "visits": "visitas",
+        "finalConsumer": "Consumidor final",
+        "items": "ítems"
+      },
+      "empty": {
+        "noData": "Sin datos"
+      }
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "title": "Panel de Super Administrador",
+      "subtitle": "Gestión centralizada de inquilinos y suscripciones.",
+      "metrics": {
+        "totalTenants": "Total Inquilinos",
+        "totalTenantsHint": "+2 desde el mes pasado",
+        "activeSubscriptions": "Suscripciones Activas",
+        "activeSubscriptionsHint": "83% de conversión",
+        "monthlyRevenue": "Ingresos Mensuales",
+        "monthlyRevenueHint": "+19% desde el mes pasado",
+        "overduePayments": "Pagos Vencidos",
+        "overduePaymentsHint": "Requiere atención"
+      },
+      "sections": {
+        "recentTenants": "Inquilinos Recientes",
+        "recentTenantsPlaceholder": "Lista de últimos registros...",
+        "systemActivity": "Actividad del Sistema",
+        "systemActivityPlaceholder": "Logs recientes..."
+      }
+    },
+    "navigationAdminPage": {
+      "title": "Administrar Navegación",
+      "subtitle": "Gestiona ítems del menú dinámico con soporte multi-pack de íconos, jerarquía y filtrado por permisos y features.",
+      "newItem": "Nuevo Ítem",
+      "confirm": {
+        "delete": "¿Eliminar ítem?"
+      },
+      "toast": {
+        "loadErrorTitle": "Error cargando navegación",
+        "deletedTitle": "Eliminado",
+        "deletedDescription": "Ítem eliminado.",
+        "deleteErrorTitle": "Error eliminando"
+      },
+      "table": {
+        "title": "Ítems del Menú",
+        "total": "Total: {total}",
+        "loading": "Cargando...",
+        "columns": {
+          "icon": "Icono",
+          "name": "Nombre",
+          "path": "Ruta",
+          "active": "Activo",
+          "actions": "Acciones"
+        }
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      },
+      "actions": {
+        "edit": "Editar",
+        "delete": "Eliminar"
+      },
+      "emptyState": {
+        "message": "Aún no hay ítems de navegación.\nCrea el primero usando el botón \"Nuevo Ítem\"."
+      }
+    },
+    "navigationEditor": {
+      "title": "Navegación",
+      "central": "Central",
+      "tenant": "Tenant",
+      "filters": {
+        "all": "Todos",
+        "active": "Activos",
+        "inactive": "Inactivos"
+      },
+      "searchPlaceholder": "Buscar…",
+      "clear": "Limpiar",
+      "showing": "Mostrando {shown} de {total}",
+      "newItem": "Nuevo ítem",
+      "activate": "Activar",
+      "deactivate": "Desactivar",
+      "moveUngrouped": "Mover a sin grupo",
+      "page": "Página {page} de {totalPages}",
+      "previous": "Anterior",
+      "next": "Siguiente",
+      "saveChanges": "Guardar cambios",
+      "iconPicker": {
+        "title": "Elegir icono ({pack})",
+        "searchPlaceholder": "Buscar icono...",
+        "close": "Cerrar",
+        "noResults": "Sin resultados",
+        "page": "Página {page} de {totalPages}",
+        "previous": "Anterior",
+        "next": "Siguiente",
+        "iconifyHelp": "Para Iconify, escribe el nombre completo del icono (ej: mdi:account, fa6-solid:user) y presiona seleccionar.",
+        "iconifyPlaceholder": "iconify: prefijo:nombre",
+        "select": "Seleccionar",
+        "preview": "Previsualización"
+      },
+      "row": {
+        "indentIncrease": "Aumentar sangría",
+        "indentDecrease": "Disminuir sangría",
+        "noGroup": "Sin grupo",
+        "chooseIcon": "Elegir icono",
+        "edit": "Editar",
+        "active": "Activo",
+        "delete": "Eliminar",
+        "duplicate": "Duplicar"
+      },
+      "loading": {
+        "title": "Cargando navegación",
+        "message": "Obteniendo items..."
+      },
+      "confirm": {
+        "title": "Confirmar",
+        "deleteTitle": "Eliminar ítem",
+        "deleteDescription": "¿Eliminar este ítem? Se eliminarán sus hijos.",
+        "duplicateTitle": "Duplicar ítem",
+        "duplicateDescription": "¿Duplicar este ítem?"
+      },
+      "mobilePanel": {
+        "title": "Acciones",
+        "description": "Filtros, paginación y acciones masivas",
+        "status": "Estado",
+        "perPage": "Por página",
+        "results": "Resultados",
+        "clearFiltersSelection": "Limpiar filtros / selección",
+        "bulkActions": "Acciones masivas ({count})"
+      },
+      "tabs": {
+        "editor": "Editor",
+        "preview": "Preview"
+      }
+    }
+  },
+  "pages": {
+    "purchases": {
+      "title": "Órdenes de compra",
+      "searchPlaceholder": "Buscar por referencia, proveedor o fecha...",
+      "new": "Nueva compra",
+      "loading": "Cargando compras...",
+      "empty": "No se encontraron compras.",
+      "errors": {
+        "loadList": "No se pudo cargar la lista de compras"
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error cargando compras"
+      },
+      "status": {
+        "active": "Activo",
+        "inactive": "Inactivo",
+        "unknown": "-"
+      },
+      "table": {
+        "purchaseNo": "N.º de compra",
+        "date": "Fecha",
+        "supplier": "Proveedor",
+        "subtotal": "Total parcial",
+        "transport": "Transporte",
+        "discount": "Descuento",
+        "netTotal": "Total neto",
+        "totalPaid": "Total pagado",
+        "totalDue": "Total adeudado",
+        "status": "Estado",
+        "actions": "Acción"
+      },
+      "detail": {
+        "supplierPhone": "Teléfono proveedor",
+        "actions": "Acciones:"
+      }
+    },
+    "suppliers": {
+      "title": "Gestión de Proveedores",
+      "searchPlaceholder": "Buscar proveedores...",
+      "new": "Nuevo proveedor",
+      "loading": "Cargando proveedores...",
+      "empty": "No se encontraron proveedores",
+      "searching": "Buscando...",
+      "errors": {
+        "loadList": "No se pudo cargar la lista de proveedores"
+      },
+      "overlay": {
+        "title": "PROCESANDO",
+        "message": "Procesando, por favor espere..."
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error cargando proveedores",
+        "saveErrorDescription": "No se pudo guardar el proveedor",
+        "deleteErrorDescription": "No se pudo eliminar el proveedor",
+        "createdTitle": "Proveedor creado",
+        "createdDescription": "El proveedor ha sido creado exitosamente",
+        "updatedTitle": "Proveedor actualizado",
+        "updatedDescription": "El proveedor ha sido actualizado exitosamente",
+        "deletedTitle": "Proveedor eliminado",
+        "deletedDescription": "El proveedor ha sido eliminado exitosamente"
+      },
+      "dialog": {
+        "createTitle": "Nuevo Proveedor",
+        "editTitle": "Editar Proveedor",
+        "confirmCreate": "Crear",
+        "confirmEdit": "Actualizar",
+        "cancel": "Cancelar"
+      },
+      "form": {
+        "contactName": "Nombre de contacto",
+        "companyName": "Nombre de la empresa",
+        "supplierId": "ID Proveedor",
+        "email": "Email",
+        "phone": "Teléfono",
+        "address": "Dirección"
+      },
+      "actions": {
+        "editAria": "Editar proveedor",
+        "deleteAria": "Eliminar proveedor"
+      },
+      "card": {
+        "email": "Email",
+        "phone": "Tel",
+        "address": "Dir"
+      }
+    },
+    "customers": {
+      "title": "Gestión de Clientes",
+      "searchPlaceholder": "Buscar clientes...",
+      "new": "Nuevo",
+      "loading": "Cargando clientes...",
+      "empty": "No se encontraron clientes",
+      "searching": "Buscando...",
+      "errors": {
+        "loadList": "No se pudo cargar la lista de clientes"
+      },
+      "overlay": {
+        "title": "PROCESANDO",
+        "message": "Procesando, por favor espere..."
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error cargando clientes",
+        "saveErrorDescription": "No se pudo guardar el cliente",
+        "createdTitle": "Cliente creado",
+        "createdDescription": "El cliente ha sido creado exitosamente",
+        "updatedTitle": "Cliente actualizado",
+        "updatedDescription": "El cliente ha sido actualizado exitosamente",
+        "deletedTitle": "Cliente eliminado",
+        "deletedDescription": "El cliente ha sido eliminado exitosamente"
+      },
+      "dialog": {
+        "createTitle": "Nuevo Cliente",
+        "editTitle": "Editar Cliente",
+        "confirmCreate": "Crear",
+        "confirmEdit": "Actualizar",
+        "cancel": "Cancelar"
+      },
+      "form": {
+        "name": "Nombre",
+        "document": "Documento",
+        "email": "Email",
+        "phone": "Teléfono"
+      },
+      "actions": {
+        "editAria": "Editar cliente",
+        "deleteAria": "Eliminar cliente"
+      },
+      "card": {
+        "email": "Email",
+        "phone": "Tel"
+      }
+    }
+    ,
+    "sales": {
+      "title": "Ventas",
+      "searchPlaceholder": "Buscar por referencia, cliente o fecha...",
+      "loading": "Cargando ventas...",
+      "empty": "No se encontraron ventas.",
+      "errors": {
+        "loadList": "No se pudo cargar la lista de ventas",
+        "query": "Error consultando ventas"
+      },
+      "toast": {
+        "errorTitle": "Error",
+        "loadErrorDescription": "Error cargando ventas"
+      },
+      "status": {
+        "paid": "Pagado",
+        "pending": "Pendiente",
+        "unknown": "-"
+      },
+      "table": {
+        "reference": "Referencia",
+        "date": "Fecha",
+        "customer": "Cliente",
+        "subtotal": "Total parcial",
+        "transport": "Transporte",
+        "discount": "Descuento",
+        "netTotal": "Total neto",
+        "totalPaid": "Total pagado",
+        "totalDue": "Total adeudado",
+        "status": "Estado",
+        "actions": "Acción"
+      },
+      "detail": {
+        "customerPhone": "Teléfono cliente",
+        "actions": "Acciones:"
+      },
+      "scrollTopAria": "Ir arriba"
+    }
+  },
+  "layout": {
+    "header": {
+      "openMenu": "Abrir menú",
+      "collapseSidebar": "Colapsar sidebar",
+      "expandSidebar": "Expandir sidebar",
+      "openCart": "Abrir carrito",
+      "cartEmptyTitle": "El carrito está vacío",
+      "cartEmptyDescription": "Agrega productos antes de ver el carrito",
+      "notificationsInbox": "Bandeja de notificaciones",
+      "unread": "{count} sin leer",
+      "allCaughtUp": "Todo al día",
+      "markAllRead": "Marcar todo leído",
+      "noNotifications": "No tienes notificaciones por ahora.",
+      "readLess": "Leer menos",
+      "readMore": "Leer más",
+      "viewLess": "Ver menos",
+      "viewMore": "Ver más",
+      "profile": "Perfil",
+      "language": {
+        "es": "Español (ES)",
+        "en": "English (EN)",
+        "pt": "Português (PT)"
+      }
+    }
+  }
+}
