@@ -33,6 +33,7 @@ import {
   ChevronRight, 
   ChevronsLeft, 
   ChevronsRight,
+  ChevronDown,
   MoreHorizontal,
   Search,
   Filter,
@@ -40,7 +41,8 @@ import {
   RefreshCw,
   Edit,
   Trash2,
-  Eye
+  Eye,
+  Plus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -52,6 +54,7 @@ export interface TableColumn {
   render?: (value: any, row: any) => React.ReactNode;
   width?: string;
   className?: string;
+  align?: 'left' | 'center' | 'right';
 }
 
 export interface TableAction {
@@ -76,6 +79,8 @@ export interface GenericTableProps<T = any> {
   filterable?: boolean;
   sortable?: boolean;
   selectable?: boolean;
+  expandable?: boolean;
+  onRowExpand?: (row: T) => React.ReactNode;
   pagination?: {
     page: number;
     pageSize: number;
@@ -88,6 +93,7 @@ export interface GenericTableProps<T = any> {
   onSort?: (column: string, direction: 'asc' | 'desc') => void;
   onRefresh?: () => void;
   onExport?: () => void;
+  onAdd?: () => void;
   selectedRows?: T[];
   onSelectionChange?: (rows: T[]) => void;
   emptyState?: {
@@ -114,12 +120,15 @@ export function GenericTable<T extends Record<string, any>>({
   filterable = true,
   sortable = true,
   selectable = false,
+  expandable = false,
+  onRowExpand,
   pagination,
   onSearch,
   onFilter,
   onSort,
   onRefresh,
   onExport,
+  onAdd,
   selectedRows = [],
   onSelectionChange,
   emptyState,
@@ -129,6 +138,7 @@ export function GenericTable<T extends Record<string, any>>({
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selected, setSelected] = useState<Set<string | number>>(new Set());
+  const [expandedRows, setExpandedRows] = useState<Set<string | number>>(new Set());
 
   // Handle search
   const handleSearch = (query: string) => {
@@ -169,6 +179,17 @@ export function GenericTable<T extends Record<string, any>>({
     
     const selectedData = data.filter(row => newSelected.has(row.id));
     onSelectionChange?.(selectedData);
+  };
+
+  // Handle row expansion
+  const handleToggleExpand = (id: string | number) => {
+    const newExpanded = new Set(expandedRows);
+    if (newExpanded.has(id)) {
+      newExpanded.delete(id);
+    } else {
+      newExpanded.add(id);
+    }
+    setExpandedRows(newExpanded);
   };
 
   // Render cell content
@@ -234,24 +255,44 @@ export function GenericTable<T extends Record<string, any>>({
   }
 
   return (
-    <Card className={className}>
+    <Card className={cn('card-modern', className)}>
       {(title || description || searchable || filterable) && (
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="border-b border-border/50">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              {title && <CardTitle>{title}</CardTitle>}
-              {description && <CardDescription>{description}</CardDescription>}
+              {title && <CardTitle className="text-xl font-semibold">{title}</CardTitle>}
+              {description && <CardDescription className="text-sm text-muted-foreground mt-1">{description}</CardDescription>}
             </div>
             <div className="flex items-center gap-2">
               {onRefresh && (
-                <Button variant="outline" size="sm" onClick={onRefresh} disabled={loading}>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={onRefresh} 
+                  disabled={loading}
+                  className="h-9 w-9 rounded-lg hover:bg-muted/80 transition-smooth"
+                >
                   <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
                 </Button>
               )}
               {onExport && (
-                <Button variant="outline" size="sm" onClick={onExport}>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={onExport}
+                  className="rounded-lg hover:bg-muted/80 transition-smooth"
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Exportar
+                </Button>
+              )}
+              {onAdd && (
+                <Button 
+                  onClick={onAdd}
+                  className="btn-primary-modern rounded-full h-10 px-6"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nueva categoría
                 </Button>
               )}
             </div>
@@ -259,17 +300,21 @@ export function GenericTable<T extends Record<string, any>>({
           
           {searchable && (
             <div className="flex items-center gap-2">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
                 <Input
-                  placeholder="Buscar..."
+                  placeholder="Buscar categorías..."
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
+                  className="input-modern pl-10 h-10 bg-muted/30 border-border/50 hover:border-border transition-smooth"
                 />
               </div>
               {filterable && (
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="rounded-lg hover:bg-muted/80 transition-smooth h-10"
+                >
                   <Filter className="h-4 w-4 mr-2" />
                   Filtros
                 </Button>
@@ -286,12 +331,17 @@ export function GenericTable<T extends Record<string, any>>({
           </div>
         )}
         
-        <div className="rounded-md border">
+        <div className="overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow>
+              <TableRow className="border-b border-border/50 hover:bg-transparent">
+                {expandable && (
+                  <TableHead className="w-12 py-3.5">
+                    <span className="sr-only">Expandir</span>
+                  </TableHead>
+                )}
                 {selectable && (
-                  <TableHead className="w-12">
+                  <TableHead className="w-12 py-3.5">
                     <Checkbox
                       checked={selected.size === data.length && data.length > 0}
                       onCheckedChange={handleSelectAll}
@@ -302,25 +352,32 @@ export function GenericTable<T extends Record<string, any>>({
                   <TableHead 
                     key={column.key}
                     className={cn(
-                      column.sortable && sortable && 'cursor-pointer hover:bg-muted/50',
+                      'py-3.5 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30',
+                      column.sortable && sortable && 'cursor-pointer hover:bg-muted/50 transition-smooth',
+                      column.align === 'right' && 'text-right',
+                      column.align === 'center' && 'text-center',
                       column.className
                     )}
                     style={{ width: column.width }}
                     onClick={() => column.sortable && handleSort(column.key)}
                   >
-                    <div className="flex items-center space-x-1">
+                    <div className={cn(
+                      'flex items-center gap-1',
+                      column.align === 'right' && 'justify-end',
+                      column.align === 'center' && 'justify-center'
+                    )}>
                       <span>{column.label}</span>
                       {column.sortable && sortable && sortColumn === column.key && (
                         <span className="text-xs">
-                          {sortDirection === 'asc' ? '·' : '·'}
+                          {sortDirection === 'asc' ? '↑' : '↓'}
                         </span>
                       )}
                     </div>
                   </TableHead>
                 ))}
                 {actions.length > 0 && (
-                  <TableHead className="w-12">
-                    <span className="sr-only">Acciones</span>
+                  <TableHead className="w-24 py-3.5 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-muted/30">
+                    Acciones
                   </TableHead>
                 )}
               </TableRow>
@@ -328,80 +385,144 @@ export function GenericTable<T extends Record<string, any>>({
             <TableBody>
               {loading ? (
                 Array.from({ length: 5 }).map((_, index) => (
-                  <TableRow key={index}>
+                  <TableRow key={index} className="border-b border-border/30">
+                    {expandable && (
+                      <TableCell className="py-4 px-4">
+                        <div className="h-4 w-4 skeleton rounded" />
+                      </TableCell>
+                    )}
                     {selectable && (
-                      <TableCell>
-                        <div className="h-4 w-4 bg-muted animate-pulse rounded" />
+                      <TableCell className="py-4 px-4">
+                        <div className="h-4 w-4 skeleton rounded" />
                       </TableCell>
                     )}
                     {columns.map((column) => (
-                      <TableCell key={column.key}>
-                        <div className="h-4 bg-muted animate-pulse rounded" />
+                      <TableCell key={column.key} className="py-4 px-4">
+                        <div className="h-4 skeleton rounded" />
                       </TableCell>
                     ))}
                     {actions.length > 0 && (
-                      <TableCell>
-                        <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+                      <TableCell className="py-4 px-4">
+                        <div className="h-8 w-16 skeleton rounded" />
                       </TableCell>
                     )}
                   </TableRow>
                 ))
               ) : (
-                data.map((row) => (
-                  <TableRow key={row.id}>
-                    {selectable && (
-                      <TableCell>
-                        <Checkbox
-                          checked={selected.has(row.id)}
-                          onCheckedChange={(checked) => handleSelectRow(row.id, checked as boolean)}
-                        />
-                      </TableCell>
-                    )}
-                    {columns.map((column) => (
-                      <TableCell key={column.key} className={column.className}>
-                        {renderCell(column, row)}
-                      </TableCell>
-                    ))}
-                    {actions.length > 0 && (
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="h-4 w-4" />
+                data.map((row) => {
+                  const isExpanded = expandedRows.has(row.id);
+                  return (
+                    <React.Fragment key={row.id}>
+                      <TableRow className="border-b border-border/30 hover:bg-muted/30 transition-smooth group">
+                        {expandable && (
+                          <TableCell className="py-4 px-4">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleToggleExpand(row.id)}
+                              className="h-6 w-6 rounded-md hover:bg-muted/80 transition-smooth"
+                            >
+                              <ChevronDown className={cn(
+                                'h-4 w-4 transition-transform duration-200',
+                                isExpanded && 'rotate-180'
+                              )} />
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {actions.map((action) => {
-                              const isDisabled = action.disabled?.(row);
-                              return (
-                                <DropdownMenuItem
-                                  key={action.key}
-                                  onClick={() => !isDisabled && action.onClick(row)}
-                                  disabled={isDisabled}
-                                  className={cn(
-                                    action.variant === 'destructive' && 'text-destructive',
-                                    action.className
-                                  )}
-                                >
-                                  {action.icon}
-                                  {action.label}
-                                </DropdownMenuItem>
-                              );
-                            })}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
+                          </TableCell>
+                        )}
+                        {selectable && (
+                          <TableCell className="py-4 px-4">
+                            <Checkbox
+                              checked={selected.has(row.id)}
+                              onCheckedChange={(checked) => handleSelectRow(row.id, checked as boolean)}
+                            />
+                          </TableCell>
+                        )}
+                        {columns.map((column) => (
+                          <TableCell 
+                            key={column.key} 
+                            className={cn(
+                              'py-4 px-4 text-sm',
+                              column.align === 'right' && 'text-right',
+                              column.align === 'center' && 'text-center',
+                              column.className
+                            )}
+                          >
+                            {renderCell(column, row)}
+                          </TableCell>
+                        ))}
+                        {actions.length > 0 && (
+                          <TableCell className="py-4 px-4">
+                            <div className="flex items-center gap-1">
+                              {actions.slice(0, 2).map((action) => {
+                                const isDisabled = action.disabled?.(row);
+                                return (
+                                  <Button
+                                    key={action.key}
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => !isDisabled && action.onClick(row)}
+                                    disabled={isDisabled}
+                                    className={cn(
+                                      'h-8 w-8 rounded-full hover:bg-muted/80 transition-smooth',
+                                      action.variant === 'destructive' && 'hover:bg-destructive/10 hover:text-destructive',
+                                      action.className
+                                    )}
+                                  >
+                                    {action.icon}
+                                  </Button>
+                                );
+                              })}
+                              {actions.length > 2 && (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-muted/80 transition-smooth">
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="glass-card">
+                                    {actions.slice(2).map((action) => {
+                                      const isDisabled = action.disabled?.(row);
+                                      return (
+                                        <DropdownMenuItem
+                                          key={action.key}
+                                          onClick={() => !isDisabled && action.onClick(row)}
+                                          disabled={isDisabled}
+                                          className={cn(
+                                            'cursor-pointer transition-smooth',
+                                            action.variant === 'destructive' && 'text-destructive focus:text-destructive focus:bg-destructive/10',
+                                            action.className
+                                          )}
+                                        >
+                                          {action.icon}
+                                          <span className="ml-2">{action.label}</span>
+                                        </DropdownMenuItem>
+                                      );
+                                    })}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                      {expandable && isExpanded && onRowExpand && (
+                        <TableRow className="border-b border-border/30 bg-muted/20">
+                          <TableCell colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0) + 1} className="py-4 px-4">
+                            {onRowExpand(row)}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </React.Fragment>
+                  );
+                })
               )}
             </TableBody>
           </Table>
         </div>
         
         {pagination && (
-          <div className="mt-4 flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+          <div className="mt-6 pt-4 border-t border-border/50 flex items-center justify-between">
+            <div className="flex items-center gap-3">
               <span className="text-sm text-muted-foreground">
                 Mostrando {((pagination.page - 1) * pagination.pageSize) + 1} a{' '}
                 {Math.min(pagination.page * pagination.pageSize, pagination.total)} de{' '}
@@ -411,7 +532,7 @@ export function GenericTable<T extends Record<string, any>>({
                 value={pagination.pageSize.toString()}
                 onValueChange={(value) => pagination.onPageSizeChange(Number(value))}
               >
-                <SelectTrigger className="w-20">
+                <SelectTrigger className="w-20 h-9 rounded-lg">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -423,35 +544,40 @@ export function GenericTable<T extends Record<string, any>>({
               </Select>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-1">
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={() => pagination.onPageChange(1)}
                 disabled={pagination.page === 1}
+                className="h-9 w-9 rounded-lg hover:bg-muted/80 transition-smooth"
               >
                 <ChevronsLeft className="h-4 w-4" />
               </Button>
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={() => pagination.onPageChange(pagination.page - 1)}
                 disabled={pagination.page === 1}
+                className="h-9 w-9 rounded-lg hover:bg-muted/80 transition-smooth"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center gap-1 mx-2">
                 {Array.from({ length: Math.min(5, Math.ceil(pagination.total / pagination.pageSize)) }).map((_, index) => {
                   const page = index + 1;
                   const isActive = page === pagination.page;
                   return (
                     <Button
                       key={page}
-                      variant={isActive ? 'default' : 'outline'}
-                      size="sm"
+                      variant={isActive ? 'default' : 'ghost'}
+                      size="icon"
                       onClick={() => pagination.onPageChange(page)}
-                      className="w-8 h-8"
+                      className={cn(
+                        'h-9 w-9 rounded-lg transition-smooth',
+                        isActive ? 'bg-primary text-primary-foreground shadow-glow' : 'hover:bg-muted/80'
+                      )}
                     >
                       {page}
                     </Button>
@@ -460,18 +586,20 @@ export function GenericTable<T extends Record<string, any>>({
               </div>
               
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={() => pagination.onPageChange(pagination.page + 1)}
                 disabled={pagination.page >= Math.ceil(pagination.total / pagination.pageSize)}
+                className="h-9 w-9 rounded-lg hover:bg-muted/80 transition-smooth"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button
-                variant="outline"
-                size="sm"
+                variant="ghost"
+                size="icon"
                 onClick={() => pagination.onPageChange(Math.ceil(pagination.total / pagination.pageSize))}
                 disabled={pagination.page >= Math.ceil(pagination.total / pagination.pageSize)}
+                className="h-9 w-9 rounded-lg hover:bg-muted/80 transition-smooth"
               >
                 <ChevronsRight className="h-4 w-4" />
               </Button>

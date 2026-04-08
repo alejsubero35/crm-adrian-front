@@ -3,7 +3,7 @@ import type { Config } from "tailwindcss";
 import tailwindcssAnimate from 'tailwindcss-animate';
 
 export default {
-	// Revertido theme: sin personalizador dinámico; mantenemos configuración por defecto (sin definir darkMode explícito)
+	darkMode: ["class"],
 	content: [
 		"./pages/**/*.{ts,tsx}",
 		"./components/**/*.{ts,tsx}",
@@ -22,37 +22,32 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: [
-					"Nunito Sans",
-					"Public Sans",
-					"Public Sans Fallback",
 					"Inter",
+					"Geist Sans",
 					"ui-sans-serif",
 					"system-ui",
+					"-apple-system",
+					"BlinkMacSystemFont",
 					"Segoe UI",
 					"Roboto",
-					"Helvetica",
+					"Helvetica Neue",
 					"Arial",
-					"Noto Sans",
-					"Apple Color Emoji",
-					"Segoe UI Emoji",
-					"Segoe UI Symbol"
+					"sans-serif"
 				],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
-				// Force ring/focus to brand orange by default
-				ring: '#f4bf97',
+				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
-				// Brand palette (inspired by supplied image: blue -> cyan -> orange)
 				primary: {
-					DEFAULT: '#0B5FFF', // deep brand blue
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--primary))',
+					foreground: 'hsl(var(--primary-foreground))'
 				},
 				secondary: {
-					DEFAULT: '#FF7A1A', // vibrant orange
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--secondary))',
+					foreground: 'hsl(var(--secondary-foreground))'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -62,10 +57,9 @@ export default {
 					DEFAULT: 'hsl(var(--muted))',
 					foreground: 'hsl(var(--muted-foreground))'
 				},
-				// Use brand orange as global accent
 				accent: {
-					DEFAULT: '#FF7A1A',
-					foreground: '#FFFFFF'
+					DEFAULT: 'hsl(var(--accent))',
+					foreground: 'hsl(var(--accent-foreground))'
 				},
 				popover: {
 					DEFAULT: 'hsl(var(--popover))',
@@ -85,34 +79,23 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// legacy specific tokens mapped to new brand colors (purple tokens remapped to orange)
-				'blue-primary': '#1B91BF',
-				'blue-secondary': '#00C7FF',
-				'gray-dark': '#333333',
-				'gray-medium': '#4A4A4A',
-				'gray-light': '#F0F0F0',
-				'success-green': '#28A745',
-				'brand-orange': '#e8761e',
-				'brand-orange-2': '#FFB047',
-				'brand-yellow': '#FFD166',
-				'brand-cyan': '#00C7FF',
-				'purple-primary': '#f4bf97',
-				'purple-secondary': '#FF7A1A',
-				'purple-dark': '#cc5f0f',
-				'purple-light': '#FFD5B3',
-				'soft-green': '#F2FCE2',
-				'soft-yellow': '#FEF7CD',
-				'soft-orange': '#FEC6A1',
-				'soft-purple': '#FFE8D6',
-				'soft-pink': '#FFDEE2',
-				'soft-blue': '#D3E4FD',
-				'soft-gray': '#F1F0FB',
 			},
-			// Revertido: radios estáticos en lugar de variables configurables
 			borderRadius: {
-				lg: '0.5rem',
-				md: '0.375rem',
-				sm: '0.25rem'
+				lg: '12px',
+				md: '10px',
+				sm: '8px',
+				xl: '16px',
+				'2xl': '20px',
+			},
+			boxShadow: {
+				'soft': '0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 4px 16px -4px rgba(0, 0, 0, 0.08)',
+				'soft-lg': '0 4px 16px -4px rgba(0, 0, 0, 0.08), 0 8px 32px -8px rgba(0, 0, 0, 0.12)',
+				'soft-xl': '0 8px 32px -8px rgba(0, 0, 0, 0.12), 0 16px 64px -16px rgba(0, 0, 0, 0.16)',
+				'glow': '0 0 20px rgba(99, 102, 241, 0.15)',
+				'glow-lg': '0 0 40px rgba(99, 102, 241, 0.2)',
+			},
+			backdropBlur: {
+				xs: '2px',
 			},
 			keyframes: {
 				'accordion-down': {

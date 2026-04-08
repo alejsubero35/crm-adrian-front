@@ -64,16 +64,16 @@ export function MasterHeader({ className = '' }: HeaderProps) {
   };
 
   return (
-    <header className={`sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ${className}`}>
-      <div className="container flex h-16 items-center justify-between px-4 lg:px-6">
+    <header className={`sticky top-0 z-50 w-full border-b border-border/50 glass-header shadow-soft transition-smooth ${className}`}>
+      <div className="container flex h-16 items-center justify-between px-4 lg:px-8">
         {/* Left side - Menu Toggle (only on mobile/tablet) */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* Menu Toggle Button - Hidden on desktop (lg and above) */}
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="h-9 w-9 lg:hidden"
+            className="h-10 w-10 rounded-lg hover:bg-muted/80 transition-smooth lg:hidden focus-modern"
           >
             {isMobile ? (
               isMobileDrawerOpen ? (
@@ -89,12 +89,12 @@ export function MasterHeader({ className = '' }: HeaderProps) {
         </div>
 
         {/* Center - Search Bar (hidden on mobile) */}
-        <div className="hidden md:flex flex-1 max-w-lg mx-8">
+        <div className="hidden md:flex flex-1 max-w-xl mx-8">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
             <Input
-              placeholder="Buscar..."
-              className="pl-10"
+              placeholder="Buscar en la aplicación..."
+              className="input-modern pl-10 h-10 bg-muted/30 border-border/50 hover:border-border transition-smooth"
               type="search"
             />
           </div>
@@ -107,12 +107,12 @@ export function MasterHeader({ className = '' }: HeaderProps) {
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
-            className="h-9 w-9"
+            className="h-10 w-10 rounded-lg hover:bg-muted/80 transition-smooth focus-modern"
           >
             {isDarkMode ? (
-              <Sun className="h-4 w-4" />
+              <Sun className="h-5 w-5" />
             ) : (
-              <Moon className="h-4 w-4" />
+              <Moon className="h-5 w-5" />
             )}
             <span className="sr-only">Toggle theme</span>
           </Button>
@@ -120,97 +120,95 @@ export function MasterHeader({ className = '' }: HeaderProps) {
           {/* Notifications */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative h-9 w-9">
-                <Bell className="h-4 w-4" />
-                {unreadCount > 0 && (
-                  <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs flex items-center justify-center"
-                  >
-                    {unreadCount}
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative h-10 w-10 rounded-lg hover:bg-muted/80 transition-smooth focus-modern"
+              >
+                <Bell className="h-5 w-5" />
+                {notifications.length > 0 && (
+                  <Badge className="absolute -top-0.5 -right-0.5 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-semibold bg-primary text-primary-foreground shadow-glow">
+                    {notifications.length}
                   </Badge>
                 )}
                 <span className="sr-only">Notifications</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="end">
-              <div className="border-b p-4">
-                <h3 className="font-semibold">Notificaciones</h3>
-                <p className="text-sm text-muted-foreground">
-                  {unreadCount} sin leer
-                </p>
+            <PopoverContent className="w-96 p-0 glass-card shadow-soft-lg" align="end">
+              <div className="p-4 border-b border-border/50">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold">Notificaciones</h4>
+                  <Badge className="badge-primary">{notifications.length}</Badge>
+                </div>
               </div>
-              <div className="max-h-80 overflow-y-auto">
+              <div className="max-h-[400px] overflow-y-auto">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 border-b last:border-b-0 hover:bg-accent cursor-pointer ${
-                      !notification.read ? 'bg-blue-50/50' : ''
-                    }`}
+                    className="flex items-start gap-3 p-4 border-b border-border/30 hover:bg-muted/50 cursor-pointer transition-smooth last:border-0"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-1">
-                        <p className={`text-sm ${!notification.read ? 'font-semibold' : ''}`}>
-                          {notification.title}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {notification.description}
-                        </p>
-                      </div>
-                      {!notification.read && (
-                        <div className="h-2 w-2 rounded-full bg-blue-500 mt-2" />
-                      )}
+                    <div className={`mt-1.5 h-2 w-2 rounded-full flex-shrink-0 ${notification.read ? 'bg-muted-foreground/30' : 'bg-primary shadow-glow'}`} />
+                    <div className="flex-1 space-y-1 min-w-0">
+                      <p className="text-sm font-medium leading-tight">{notification.title}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{notification.description}</p>
+                      <p className="text-xs text-muted-foreground/70">{notification.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="p-2 border-t">
-                <Button variant="ghost" size="sm" className="w-full">
-                  Marcar todas como leídas
+              <div className="p-3 border-t border-border/50">
+                <Button variant="ghost" className="w-full h-9 text-sm font-medium hover:bg-muted/80 transition-smooth" size="sm">
+                  Ver todas las notificaciones
                 </Button>
               </div>
             </PopoverContent>
           </Popover>
 
-          {/* User Avatar Dropdown */}
+          {/* User Avatar */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-9 pl-2 pr-1">
-                <Avatar className="h-7 w-7">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-lg p-0 hover:bg-muted/80 transition-smooth focus-modern">
+                <Avatar className="h-9 w-9">
                   <AvatarImage src={user?.avatar} alt={user?.name} />
-                  <AvatarFallback>
-                    {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold">
+                    {user?.name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
-                <ChevronDown className="h-4 w-4 ml-1" />
-                <span className="sr-only">User menu</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.name}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
+            <DropdownMenuContent className="w-64 p-0 glass-card shadow-soft-lg" align="end" forceMount>
+              <div className="p-4 border-b border-border/50">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-12 w-12 ring-2 ring-border/50">
+                    <AvatarImage src={user?.avatar} alt={user?.name} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground font-semibold text-lg">
+                      {user?.name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold leading-tight truncate">{user?.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {user?.email}
+                    </p>
+                  </div>
                 </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Perfil</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Configuración</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Cerrar sesión</span>
-              </DropdownMenuItem>
+              </div>
+              <div className="p-2">
+                <DropdownMenuItem className="rounded-lg cursor-pointer transition-smooth focus:bg-muted/80">
+                  <User className="mr-3 h-4 w-4" />
+                  <span className="text-sm font-medium">Mi Perfil</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem className="rounded-lg cursor-pointer transition-smooth focus:bg-muted/80">
+                  <Settings className="mr-3 h-4 w-4" />
+                  <span className="text-sm font-medium">Configuración</span>
+                </DropdownMenuItem>
+              </div>
+              <div className="p-2 border-t border-border/50">
+                <DropdownMenuItem onClick={handleLogout} className="rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth">
+                  <LogOut className="mr-3 h-4 w-4" />
+                  <span className="text-sm font-medium">Cerrar sesión</span>
+                </DropdownMenuItem>
+              </div>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

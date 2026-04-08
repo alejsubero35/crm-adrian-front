@@ -139,18 +139,17 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
         <Icon className="h-4 w-4 shrink-0" />
         {!isCollapsed && (
           <>
-            <span className="flex-1 text-sm">{item.label}</span>
+            <span className="flex-1 text-sm font-medium">{item.label}</span>
             {item.badge && (
-              <Badge variant="secondary" className="ml-auto">
+              <Badge variant="secondary" className="ml-auto h-5 px-2 text-xs">
                 {item.badge}
               </Badge>
             )}
             {hasChildren && (
-              isExpanded ? (
-                <ChevronDown className="h-4 w-4 shrink-0" />
-              ) : (
-                <ChevronRight className="h-4 w-4 shrink-0" />
-              )
+              <ChevronDown className={cn(
+                "h-4 w-4 shrink-0 transition-transform duration-200",
+                isExpanded && "rotate-180"
+              )} />
             )}
           </>
         )}
@@ -166,17 +165,19 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
         >
           <CollapsibleTrigger asChild>
             <Button
-              variant={isActive ? "secondary" : "ghost"}
+              variant="ghost"
               className={cn(
-                "w-full justify-start gap-2 h-10",
-                isActive && "bg-accent text-accent-foreground",
+                "w-full justify-start gap-3 h-10 rounded-lg transition-smooth",
+                isActive 
+                  ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-soft" 
+                  : "hover:bg-sidebar-accent/50 text-sidebar-foreground/90 hover:text-sidebar-foreground",
                 isCollapsed && "justify-center px-2"
               )}
             >
               {itemContent}
             </Button>
           </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-1">
+          <CollapsibleContent className="space-y-1 mt-1 ml-3 pl-3 border-l border-border/30">
             {item.children?.map((child) => renderSidebarItem(child, level + 1))}
           </CollapsibleContent>
         </Collapsible>
@@ -187,10 +188,13 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
       return (
         <Link key={item.id} to={item.href}>
           <Button
-            variant={isActive ? "secondary" : "ghost"}
+            variant="ghost"
             className={cn(
-              "w-full justify-start gap-2 h-10",
-              isActive && "bg-accent text-accent-foreground",
+              "w-full justify-start gap-3 h-10 rounded-lg transition-smooth",
+              level > 0 && "h-9 text-sm",
+              isActive 
+                ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-soft" 
+                : "hover:bg-sidebar-accent/50 text-sidebar-foreground/90 hover:text-sidebar-foreground",
               isCollapsed && "justify-center px-2"
             )}
             onClick={() => {
@@ -210,7 +214,7 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
         key={item.id}
         variant="ghost"
         className={cn(
-          "w-full justify-start gap-2 h-10",
+          "w-full justify-start gap-3 h-10 rounded-lg transition-smooth hover:bg-sidebar-accent/50 text-sidebar-foreground/90 hover:text-sidebar-foreground",
           isCollapsed && "justify-center px-2"
         )}
       >
@@ -223,20 +227,20 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
     <TooltipProvider>
       <div
         className={cn(
-          "flex flex-col h-full bg-background border-r transition-all duration-300",
+          "flex flex-col h-full glass-sidebar border-r border-border/50 transition-all duration-300",
           isSidebarCollapsed ? "w-16" : "w-64",
-          isMobile && "fixed inset-y-0 left-0 z-50 w-64",
+          isMobile && "fixed inset-y-0 left-0 z-50 w-64 shadow-soft-xl",
           className
         )}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center justify-between p-4 border-b border-border/50">
           {!isSidebarCollapsed && (
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-glow">
                 <span className="text-sm font-bold">SK</span>
               </div>
-              <span className="font-semibold">Starter Kit</span>
+              <span className="font-semibold text-sidebar-foreground">Starter Kit</span>
             </div>
           )}
           {isMobile && (
@@ -244,7 +248,7 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
               variant="ghost"
               size="icon"
               onClick={closeMobileDrawer}
-              className="h-8 w-8"
+              className="h-9 w-9 rounded-lg hover:bg-sidebar-accent/50 transition-smooth"
             >
               <Menu className="h-4 w-4" />
             </Button>
@@ -252,7 +256,7 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
         </div>
 
         {/* Sidebar Navigation */}
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-minimal">
           {items.map((item) => {
             const itemElement = renderSidebarItem(item);
             
@@ -275,14 +279,32 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t">
-          {!isSidebarCollapsed && (
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start gap-2 h-10">
+        <div className="p-3 border-t border-border/50">
+          {!isSidebarCollapsed ? (
+            <div className="space-y-1">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start gap-3 h-10 rounded-lg transition-smooth hover:bg-sidebar-accent/50 text-sidebar-foreground/90 hover:text-sidebar-foreground"
+              >
                 <HelpCircle className="h-4 w-4" />
-                <span className="flex-1 text-sm">Ayuda</span>
+                <span className="flex-1 text-sm font-medium">Ayuda</span>
               </Button>
             </div>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="w-full h-10 rounded-lg transition-smooth hover:bg-sidebar-accent/50"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Ayuda</p>
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
       </div>
