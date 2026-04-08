@@ -1,7 +1,7 @@
 {
-  "name": "Venta Simplyfy",
-  "short_name": "Simplyfy",
-  "description": "Punto de venta móvil - Venta Simplyfy",
+  "name": "started",
+  "short_name": "Started",
+  "description": "Started",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

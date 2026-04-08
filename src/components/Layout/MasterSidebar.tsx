@@ -237,8 +237,8 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
         <div className="flex items-center justify-between p-4 border-b border-border/50">
           {!isSidebarCollapsed && (
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-glow">
-                <span className="text-sm font-bold">SK</span>
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden shadow-glow">
+                <img src="/img/ms-icon-310x310.png" alt="Logo" className="h-full w-full object-cover" />
               </div>
               <span className="font-semibold text-sidebar-foreground">Starter Kit</span>
             </div>

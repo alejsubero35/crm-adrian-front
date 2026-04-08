@@ -89,21 +89,12 @@ export function MasterHeader({ className = '' }: HeaderProps) {
         </div>
 
         {/* Center - Search Bar (hidden on mobile) */}
-        <div className="hidden md:flex flex-1 max-w-xl mx-8">
-          <div className="relative w-full">
-            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
-            <Input
-              placeholder="Buscar en la aplicación..."
-              className="input-modern pl-10 h-10 bg-muted/30 border-border/50 hover:border-border transition-smooth"
-              type="search"
-            />
-          </div>
-        </div>
+    
 
         {/* Right side - Notifications, Theme Toggle, and User Avatar */}
         <div className="flex items-center gap-2">
           {/* Theme Toggle */}
-          <Button
+       {/*    <Button
             variant="ghost"
             size="icon"
             onClick={toggleTheme}
@@ -115,7 +106,7 @@ export function MasterHeader({ className = '' }: HeaderProps) {
               <Moon className="h-5 w-5" />
             )}
             <span className="sr-only">Toggle theme</span>
-          </Button>
+          </Button> */}
 
           {/* Notifications */}
           <Popover>
