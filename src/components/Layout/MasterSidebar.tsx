@@ -85,6 +85,14 @@ const defaultSidebarItems: SidebarItem[] = [
     icon: Settings,
     href: '/settings',
     requiredRoles: ['admin'],
+    children: [
+      {
+        id: 'navigation-settings',
+        label: 'Navegación Mobile',
+        icon: Settings,
+        href: '/settings/navigation',
+      },
+    ],
   },
 ];
 

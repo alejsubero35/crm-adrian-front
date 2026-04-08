@@ -20,6 +20,7 @@ const UserCRUD = React.lazy(() => import('@/pages/UserCRUD'));
 const ProductCRUD = React.lazy(() => import('@/pages/ProductCRUD'));
 const Reports = React.lazy(() => import('@/pages/Reports'));
 const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'));
+const NavigationSettings = React.lazy(() => import('@/pages/NavigationSettings'));
 const SalesReport = React.lazy(() => import('@/pages/reports/SalesReport'));
 const InventoryReport = React.lazy(() => import('@/pages/reports/InventoryReport'));
 const Login = React.lazy(() => import('@/features/auth/LoginPage'));
@@ -102,6 +103,16 @@ export const routeConfig: RouteConfig[] = [
     component: SettingsPage,
     requiredRoles: ['admin'],
     showInSidebar: true,
+    children: [
+      {
+        id: 'navigation-settings',
+        path: '/settings/navigation',
+        label: 'Navegación Mobile',
+        icon: Settings,
+        component: NavigationSettings,
+        showInSidebar: true,
+      },
+    ],
   },
   
   // Error routes
