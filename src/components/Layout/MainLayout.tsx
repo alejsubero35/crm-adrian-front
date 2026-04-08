@@ -2,6 +2,7 @@ import React from 'react';
 import { useUI } from '@/contexts/UIContext';
 import { MasterHeader } from './MasterHeader';
 import { MasterSidebar } from './MasterSidebar';
+import { MobileBottomNav } from './MobileBottomNav';
 import { cn } from '@/lib/utils';
 
 interface MainLayoutProps {
@@ -39,7 +40,7 @@ export function MainLayout({ children, className = '' }: MainLayoutProps) {
           className={cn(
             "flex-1 overflow-y-auto bg-background",
             "transition-all duration-300 ease-in-out",
-            isMobile ? "ml-0" : isSidebarCollapsed ? "ml-16" : "ml-64",
+            isMobile ? "ml-0 pb-20" : isSidebarCollapsed ? "ml-16" : "ml-64",
             className
           )}
         >
@@ -48,6 +49,9 @@ export function MainLayout({ children, className = '' }: MainLayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </div>
   );
 }

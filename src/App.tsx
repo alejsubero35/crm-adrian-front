@@ -6,6 +6,7 @@ import { Sonner } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { UIProvider } from '@/contexts/UIContext';
 import { DemoAuthProvider } from '@/features/auth/DemoAuthContext';
+import { NavigationConfigProvider } from '@/contexts/NavigationConfigContext';
 import { AppRoutes } from '@/routes/AppRoutes';
 
 // Create a client for React Query
@@ -25,11 +26,13 @@ function App() {
       <TooltipProvider>
         <BrowserRouter>
           <UIProvider>
-            <DemoAuthProvider>
-              <AppRoutes />
-              <Toaster />
-              <Sonner />
-            </DemoAuthProvider>
+            <NavigationConfigProvider>
+              <DemoAuthProvider>
+                <AppRoutes />
+                <Toaster />
+                <Sonner />
+              </DemoAuthProvider>
+            </NavigationConfigProvider>
           </UIProvider>
         </BrowserRouter>
       </TooltipProvider>

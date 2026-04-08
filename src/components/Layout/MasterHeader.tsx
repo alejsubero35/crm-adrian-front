@@ -88,8 +88,11 @@ export function MasterHeader({ className = '' }: HeaderProps) {
           </Button>
         </div>
 
-        {/* Center - Search Bar (hidden on mobile) */}
-    
+        {/* Center - Title with Logo (visible on mobile) */}
+        <div className="flex items-center gap-2 lg:hidden absolute left-1/2 -translate-x-1/2">
+          <img src="/img/ms-icon-310x310.png" alt="Logo" className="h-8 w-8 object-cover rounded-lg" />
+          <span className="font-semibold text-foreground text-base">Started Kit</span>
+        </div>
 
         {/* Right side - Notifications, Theme Toggle, and User Avatar */}
         <div className="flex items-center gap-2">
