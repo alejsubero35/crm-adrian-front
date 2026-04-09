@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUI } from '@/contexts/UIContext';
-import { MasterHeader } from '../layout/MasterHeader';
-import { MasterSidebar } from '../layout/MasterSidebar';
+import { MasterHeader } from './MasterHeader';
+import { MasterSidebar } from './MasterSidebar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { cn } from '@/lib/utils';
 
