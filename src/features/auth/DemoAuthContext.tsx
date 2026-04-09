@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { createContext, useContext, ReactNode } from 'react';
+import { AuthProvider } from '@/contexts/AuthContext';
+import useAuth from '@/contexts/useAuth';
+import type { User as BaseUser } from '@/contexts/authContextObj';
 
-export interface User {
-  id: string | number;
-  name: string;
-  email: string;
+export interface User extends Omit<BaseUser, 'roles'> {
   avatar?: string;
-  roles?: string[] | { name: string; slug: string }[];
+  roles?: string | string[] | { name?: string; slug?: string }[];
 }
 
 interface DemoAuthContextType {
@@ -23,178 +24,76 @@ interface DemoAuthContextType {
 
 const DemoAuthContext = createContext<DemoAuthContextType | undefined>(undefined);
 
-interface DemoAuthProviderProps {
-  children: ReactNode;
-}
+function DemoAuthAdapterProvider({ children }: { children: ReactNode }) {
+  const { user, isLoading, login: realLogin, logout: realLogout } = useAuth();
 
-export function DemoAuthProvider({ children }: DemoAuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isDemoMode, setIsDemoMode] = useState(true); // Por defecto en modo demo
-
-  const isAuthenticated = !!user;
-
-  useEffect(() => {
-    const initializeAuth = async () => {
-      try {
-        const storedUser = localStorage.getItem('demo_auth_user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error('Auth initialization error:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAuth();
-  }, []);
-
-  const login = async (username: string, password: string) => {
-    setIsLoading(true);
-    try {
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Usuarios demo
-      const demoUsers: User[] = [
-        {
-          id: 1,
-          name: 'Administrador Demo',
-          email: 'admin@demo.com',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
-          roles: ['admin', 'user']
-        },
-        {
-          id: 2,
-          name: 'Usuario Demo',
-          email: 'user@demo.com',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=user',
-          roles: ['user']
-        },
-        {
-          id: 3,
-          name: 'Manager Demo',
-          email: 'manager@demo.com',
-          avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=manager',
-          roles: ['manager', 'user']
-        }
-      ];
-
-      // Seleccionar usuario basado en el username
-      let selectedUser = demoUsers[0]; // Default admin
-
-      if (username.includes('admin')) {
-        selectedUser = demoUsers[0];
-      } else if (username.includes('user')) {
-        selectedUser = demoUsers[1];
-      } else if (username.includes('manager')) {
-        selectedUser = demoUsers[2];
-      }
-
-      // Almacenar usuario
-      console.log('Usuario seleccionado:', selectedUser);
-      setUser(selectedUser);
-      localStorage.setItem('demo_auth_user', JSON.stringify(selectedUser));
-      console.log('Usuario almacenado, autenticación actualizada');
-
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+  const login = async (username: string, password: string): Promise<void> => {
+    const ok = await realLogin(username, password);
+    if (!ok) {
+      throw new Error('Credenciales inválidas');
     }
   };
 
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      // Simular delay
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
-      // Limpiar datos
-      setUser(null);
-      localStorage.removeItem('demo_auth_user');
-    } catch (error) {
-      console.error('Logout error:', error);
-      // Still clear user data even if API call fails
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
+  const logout = async (): Promise<void> => {
+    await realLogout();
   };
 
-  const register = async (
-    name: string,
-    email: string,
-    password: string,
-    passwordConfirmation: string
-  ) => {
-    setIsLoading(true);
-    try {
-      // Simular delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      if (password !== passwordConfirmation) {
-        throw new Error('Las contraseñas no coinciden');
-      }
-
-      const newUser: User = {
-        id: Date.now(),
-        name,
-        email,
-        roles: ['user']
-      };
-
-      setUser(newUser);
-      localStorage.setItem('demo_auth_user', JSON.stringify(newUser));
-
-    } catch (error) {
-      console.error('Registration error:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
+  const register = async (): Promise<void> => {
+    throw new Error('Registro no habilitado en este entorno');
   };
 
   const hasRole = (role: string): boolean => {
-    if (!user?.roles) return false;
+    const roles = (user as User | null)?.roles;
+    if (!roles) return false;
 
-    const roles = Array.isArray(user.roles) 
-      ? user.roles 
-      : [user.roles];
+    if (typeof roles === 'string') {
+      return roles === role;
+    }
 
-    return roles.some(r => 
-      typeof r === 'string' ? r === role : r.slug === role || r.name === role
-    );
+    if (Array.isArray(roles)) {
+      return roles.some((r) => {
+        if (typeof r === 'string') return r === role;
+        return r?.slug === role || r?.name === role;
+      });
+    }
+
+    return false;
   };
 
   const refreshUser = async (): Promise<void> => {
-    // En modo demo, simplemente mantener el usuario actual
-    if (user) {
-      localStorage.setItem('demo_auth_user', JSON.stringify(user));
-    }
+    return Promise.resolve();
   };
 
-  const toggleDemoMode = () => {
-    setIsDemoMode(!isDemoMode);
+  const toggleDemoMode = (): void => {
+    // Intentionally disabled: demo mode removed.
   };
 
   const value: DemoAuthContextType = {
-    user,
+    user: (user as User | null) ?? null,
     isLoading,
-    isAuthenticated,
+    isAuthenticated: !!user,
     login,
     logout,
     register,
     hasRole,
     refreshUser,
-    isDemoMode,
+    isDemoMode: false,
     toggleDemoMode,
   };
 
   return <DemoAuthContext.Provider value={value}>{children}</DemoAuthContext.Provider>;
+}
+
+interface DemoAuthProviderProps {
+  children: ReactNode;
+}
+
+export function DemoAuthProvider({ children }: DemoAuthProviderProps) {
+  return (
+    <AuthProvider>
+      <DemoAuthAdapterProvider>{children}</DemoAuthAdapterProvider>
+    </AuthProvider>
+  );
 }
 
 export function useDemoAuth(): DemoAuthContextType {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { useDemoAuth, User } from './DemoAuthContext';
+import { useDemoAuth } from './DemoAuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,18 +14,8 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
-  const { login, isLoading, isDemoMode, isAuthenticated } = useDemoAuth();
-  const navigate = useNavigate();
+  const { login, isLoading } = useDemoAuth();
   const [error, setError] = React.useState<string>('');
-
-  // Redirigir si ya está autenticado
-  React.useEffect(() => {
-    console.log('Estado de autenticación:', isAuthenticated);
-    if (isAuthenticated) {
-      console.log('Usuario ya autenticado, redirigiendo...');
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, navigate]);
 
   const {
     register,
@@ -39,9 +28,7 @@ export default function LoginPage() {
     console.log('Iniciando login con:', data.username);
     try {
       await login(data.username, data.password);
-      console.log('Login exitoso, redirigiendo...');
-      // Redirigir al dashboard después del login exitoso
-      navigate('/dashboard');
+      console.log('Login exitoso');
     } catch (err: any) {
       console.error('Error en login:', err);
       setError(err.message || 'Error al iniciar sesión');
