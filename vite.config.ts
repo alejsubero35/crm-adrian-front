@@ -1,7 +1,7 @@
 
 import { defineConfig } from "vite";
 // Prefer Babel-based React plugin to avoid SWC native binding issues on Windows
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';

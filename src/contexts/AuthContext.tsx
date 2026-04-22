@@ -189,8 +189,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			} catch {
 				// ignore
 			}
-			// Redirección basada en entorno: en host de tenant siempre POS; en central, super-admin => /admin
-			const destination = tenantHost ? '/pos/products' : (hasSuperAdminRole(response.user) ? '/admin' : '/pos/products');
+			// El frontend actual usa /dashboard como ruta principal de inicio.
+			const destination = '/dashboard';
 			// Debug logs para verificar rol y destino
 			try {
 				console.log('[Auth] Usuario autenticado:', response.user);

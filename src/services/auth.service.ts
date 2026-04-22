@@ -31,8 +31,7 @@ interface LoginCredentials {
 
 interface ApiLoginResponse {
   token: string;
-  token_type: string;
-  expires_in: number;
+  user?: User;
 }
 
 interface LoginResponse {
@@ -67,8 +66,8 @@ export const authService = {
 
       console.log('Token almacenado:', apiService.loadToken());
 
-      // Obtenemos los datos del usuario
-      const user = await this.getCurrentUser();
+      // Preferimos el usuario devuelto por login y usamos /me como respaldo
+      const user = response.user ?? await this.getCurrentUser();
 
       // Bloquear super-admin en hosts de tenant (login directo no permitido)
       const tenantHost = isTenantHost();
@@ -172,7 +171,7 @@ export const authService = {
       }
 
       try {
-        const user = await apiService.get<User>('/user', true, {
+        const user = await apiService.get<User>('/me', true, {
           headers: {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest'

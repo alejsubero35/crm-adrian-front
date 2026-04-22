@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { getAllRoutes, hasRouteAccess } from '@/config/routes';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { MainLayout } from '@/components/Layout/MainLayout';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
