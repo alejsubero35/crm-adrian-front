@@ -10,7 +10,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => ({
   // In development we use relative base for Vite dev server.
   // In production we deploy under Laravel public/app, so use absolute base "/app/".
-  base: (mode === 'production' || mode === 'laravel') ? '/app/' : './',
+  base: './',
   
   server: {
     host: true,
