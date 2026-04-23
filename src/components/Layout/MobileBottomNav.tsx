@@ -14,7 +14,7 @@ export function MobileBottomNav() {
   const navItems = getEnabledItems();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 lg:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
       {/* Glassmorphism background with border */}
       <div className="glass-header border-t border-border/50 shadow-soft-xl">
         <div className="flex items-center justify-around px-2 py-2 safe-area-inset-bottom">
@@ -36,7 +36,7 @@ export function MobileBottomNav() {
                   <div className="relative">
                     <div className="absolute inset-0 bg-primary rounded-full blur-lg opacity-50" />
                     <div className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-glow transition-smooth hover:scale-105 active:scale-95">
-                      <IconComponent className="h-6 w-6" />
+                      <IconComponent className="h-6 w-6" weight="fill" />
                     </div>
                   </div>
                   <span className="text-[10px] font-medium text-primary mt-1">
@@ -58,10 +58,10 @@ export function MobileBottomNav() {
                 )}
               >
                 <div className="relative">
-                  <IconComponent className={cn(
-                    'h-5 w-5 transition-smooth',
-                    active && 'scale-110'
-                  )} />
+                  <IconComponent
+                    className={cn('h-5 w-5 transition-smooth', active && 'scale-110')}
+                    weight={active ? 'fill' : 'duotone'}
+                  />
                 </div>
                 <span className={cn(
                   'text-[10px] font-medium mt-1 transition-smooth',

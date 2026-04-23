@@ -4,19 +4,19 @@ import { useUI } from '@/contexts/UIContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { 
-  LayoutDashboard,
+import {
+  SquaresFour,
   Users,
-  Settings,
+  Gear,
   FileText,
-  BarChart3,
+  ChartBar,
   Package,
-  HelpCircle,
-  ChevronDown,
-  ChevronRight,
-  LogOut,
-  Menu
-} from 'lucide-react';
+  Question,
+  CaretDown,
+  CaretRight,
+  SignOut,
+  List
+} from '@phosphor-icons/react';
 import {
   Collapsible,
   CollapsibleContent,
@@ -43,7 +43,7 @@ const defaultSidebarItems: SidebarItem[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    icon: LayoutDashboard,
+    icon: SquaresFour,
     href: '/dashboard',
   },
   {
@@ -62,7 +62,7 @@ const defaultSidebarItems: SidebarItem[] = [
   {
     id: 'reports',
     label: 'Reportes',
-    icon: BarChart3,
+    icon: ChartBar,
     href: '/reports',
     children: [
       {
@@ -82,14 +82,14 @@ const defaultSidebarItems: SidebarItem[] = [
   {
     id: 'settings',
     label: 'Configuración',
-    icon: Settings,
+    icon: Gear,
     href: '/settings',
     requiredRoles: ['admin'],
     children: [
       {
         id: 'navigation-settings',
         label: 'Navegación Mobile',
-        icon: Settings,
+        icon: Gear,
         href: '/settings/navigation',
       },
     ],
@@ -144,7 +144,7 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
 
     const itemContent = (
       <>
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className="h-4 w-4 shrink-0" weight="duotone" />
         {!isCollapsed && (
           <>
             <span className="flex-1 text-sm font-medium">{item.label}</span>
@@ -154,10 +154,10 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
               </Badge>
             )}
             {hasChildren && (
-              <ChevronDown className={cn(
+              <CaretDown className={cn(
                 "h-4 w-4 shrink-0 transition-transform duration-200",
                 isExpanded && "rotate-180"
-              )} />
+              )} weight="bold" />
             )}
           </>
         )}
@@ -258,7 +258,7 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
               onClick={closeMobileDrawer}
               className="h-9 w-9 rounded-lg hover:bg-sidebar-accent/50 transition-smooth"
             >
-              <Menu className="h-4 w-4" />
+              <List className="h-4 w-4" weight="bold" />
             </Button>
           )}
         </div>
@@ -294,7 +294,7 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
                 variant="ghost" 
                 className="w-full justify-start gap-3 h-10 rounded-lg transition-smooth hover:bg-sidebar-accent/50 text-sidebar-foreground/90 hover:text-sidebar-foreground"
               >
-                <HelpCircle className="h-4 w-4" />
+                <Question className="h-4 w-4" weight="duotone" />
                 <span className="flex-1 text-sm font-medium">Ayuda</span>
               </Button>
             </div>
@@ -306,7 +306,7 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
                   size="icon"
                   className="w-full h-10 rounded-lg transition-smooth hover:bg-sidebar-accent/50"
                 >
-                  <HelpCircle className="h-4 w-4" />
+                  <Question className="h-4 w-4" weight="duotone" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right">

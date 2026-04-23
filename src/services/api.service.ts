@@ -125,7 +125,8 @@ class ApiService {
       });
 
       if (!response.ok) {
-        if (response.status === 401 || response.status === 419) {
+        const isAuthEndpoint = endpoint === '/login' || endpoint === '/logout';
+        if ((response.status === 401 || response.status === 419) && !isAuthEndpoint) {
           try { window.dispatchEvent(new Event('app-logout')); } catch (e) { /* noop */ }
         }
         // Do not dispatch a global logout here; let the auth layer decide how to react

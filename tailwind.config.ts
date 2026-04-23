@@ -22,7 +22,6 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: [
-					"Inter",
 					"Geist Sans",
 					"ui-sans-serif",
 					"system-ui",

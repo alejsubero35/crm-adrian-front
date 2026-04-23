@@ -4,18 +4,18 @@ import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Menu, 
-  X, 
-  Bell, 
-  Search, 
-  Settings, 
-  LogOut, 
+import {
+  List,
+  X,
+  Bell,
+  MagnifyingGlass,
+  Gear,
+  SignOut,
   User,
-  ChevronDown,
+  CaretDown,
   Moon,
   Sun
-} from 'lucide-react';
+} from '@phosphor-icons/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,7 +65,7 @@ export function MasterHeader({ className = '' }: HeaderProps) {
 
   return (
     <header className={`sticky top-0 z-50 w-full border-b border-border/50 glass-header shadow-soft transition-smooth ${className}`}>
-      <div className="container flex h-16 items-center justify-between px-4 lg:px-8">
+      <div className="flex w-full h-16 items-center justify-between px-4 lg:px-8">
         {/* Left side - Menu Toggle (only on mobile/tablet) */}
         <div className="flex items-center gap-3">
           {/* Menu Toggle Button - Hidden on desktop (lg and above) */}
@@ -77,12 +77,12 @@ export function MasterHeader({ className = '' }: HeaderProps) {
           >
             {isMobile ? (
               isMobileDrawerOpen ? (
-                <X className="h-5 w-5" />
+                <X className="h-5 w-5" weight="bold" />
               ) : (
-                <Menu className="h-5 w-5" />
+                <List className="h-5 w-5" weight="bold" />
               )
             ) : (
-              <Menu className="h-5 w-5" />
+              <List className="h-5 w-5" weight="bold" />
             )}
             <span className="sr-only">Toggle sidebar</span>
           </Button>
@@ -104,9 +104,9 @@ export function MasterHeader({ className = '' }: HeaderProps) {
             className="h-10 w-10 rounded-lg hover:bg-muted/80 transition-smooth focus-modern"
           >
             {isDarkMode ? (
-              <Sun className="h-5 w-5" />
+              <Sun className="h-5 w-5" weight="duotone" />
             ) : (
-              <Moon className="h-5 w-5" />
+              <Moon className="h-5 w-5" weight="duotone" />
             )}
             <span className="sr-only">Toggle theme</span>
           </Button> */}
@@ -119,7 +119,7 @@ export function MasterHeader({ className = '' }: HeaderProps) {
                 size="icon" 
                 className="relative h-10 w-10 rounded-lg hover:bg-muted/80 transition-smooth focus-modern"
               >
-                <Bell className="h-5 w-5" />
+                <Bell className="h-5 w-5" weight="duotone" />
                 {notifications.length > 0 && (
                   <Badge className="absolute -top-0.5 -right-0.5 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-semibold bg-primary text-primary-foreground shadow-glow">
                     {notifications.length}
@@ -189,17 +189,17 @@ export function MasterHeader({ className = '' }: HeaderProps) {
               </div>
               <div className="p-2">
                 <DropdownMenuItem className="rounded-lg cursor-pointer transition-smooth focus:bg-muted/80">
-                  <User className="mr-3 h-4 w-4" />
+                  <User className="mr-3 h-4 w-4" weight="duotone" />
                   <span className="text-sm font-medium">Mi Perfil</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="rounded-lg cursor-pointer transition-smooth focus:bg-muted/80">
-                  <Settings className="mr-3 h-4 w-4" />
+                  <Gear className="mr-3 h-4 w-4" weight="duotone" />
                   <span className="text-sm font-medium">Configuración</span>
                 </DropdownMenuItem>
               </div>
               <div className="p-2 border-t border-border/50">
                 <DropdownMenuItem onClick={handleLogout} className="rounded-lg cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10 transition-smooth">
-                  <LogOut className="mr-3 h-4 w-4" />
+                  <SignOut className="mr-3 h-4 w-4" weight="duotone" />
                   <span className="text-sm font-medium">Cerrar sesión</span>
                 </DropdownMenuItem>
               </div>

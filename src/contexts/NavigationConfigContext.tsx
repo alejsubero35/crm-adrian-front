@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  Home,
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
+import {
+  House,
   Users,
   ShoppingBag,
-  BarChart3,
-  Settings,
+  ChartBar,
+  Gear,
   Package,
   FileText,
-  TrendingUp,
+  TrendUp,
   Calendar,
-  MessageSquare,
-  LucideIcon
-} from 'lucide-react';
+  ChatCircle
+} from '@phosphor-icons/react';
 
 export interface NavItem {
   id: string;
@@ -24,17 +24,17 @@ export interface NavItem {
 }
 
 // Mapa de iconos disponibles
-export const AVAILABLE_ICONS: Record<string, LucideIcon> = {
-  Home,
+export const AVAILABLE_ICONS: Record<string, PhosphorIcon> = {
+  Home: House,
   Users,
   ShoppingBag,
-  BarChart3,
-  Settings,
+  BarChart3: ChartBar,
+  Settings: Gear,
   Package,
   FileText,
-  TrendingUp,
+  TrendingUp: TrendUp,
   Calendar,
-  MessageSquare,
+  MessageSquare: ChatCircle,
 };
 
 // Configuración por defecto
