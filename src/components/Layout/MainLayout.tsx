@@ -11,7 +11,7 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children, className = '' }: MainLayoutProps) {
-  const { isMobile, isMobileDrawerOpen, isSidebarOpen, isSidebarCollapsed } = useUI();
+  const { isMobile, isMobileDrawerOpen, isSidebarOpen, isSidebarCollapsed, isDesktop, closeMobileDrawer } = useUI();
 
   return (
     <div className="flex h-screen bg-background">
@@ -22,11 +22,7 @@ export function MainLayout({ children, className = '' }: MainLayoutProps) {
       {isMobile && isMobileDrawerOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50"
-          onClick={() => {
-            // Close mobile drawer when clicking overlay
-            const drawer = document.querySelector('[data-mobile-drawer]') as HTMLElement;
-            drawer?.click();
-          }}
+          onClick={closeMobileDrawer}
         />
       )}
 
@@ -40,11 +36,11 @@ export function MainLayout({ children, className = '' }: MainLayoutProps) {
           className={cn(
             "flex-1 overflow-y-auto bg-background",
             "transition-all duration-300 ease-in-out",
-            isMobile ? "ml-0 pb-20" : isSidebarCollapsed ? "ml-16" : "ml-64",
+            isMobile ? "pb-20" : "pb-0",
             className
           )}
         >
-          <div className="container mx-auto p-4 lg:p-6">
+          <div className="w-full p-4 lg:p-6">
             {children}
           </div>
         </main>

@@ -85,6 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		}
 	});
 	const shouldLogout = useRef(false);
+	const isLoggingOut = useRef(false);
 	const lastLoginAt = useRef<number>(0);
 	const idleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -212,6 +213,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	};
 
 	const logout = async () => {
+		if (isLoggingOut.current) return;
+		isLoggingOut.current = true;
 		setIsLoading(true);
 		try {
 			await authService.logout();
@@ -232,6 +235,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		setUser(null);
 		toast({ title: 'Sesión cerrada', description: 'Has cerrado sesión',variant: 'success' });
 		navigate('/login');
+		isLoggingOut.current = false;
 		setIsLoading(false);
 	};
 
