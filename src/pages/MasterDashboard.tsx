@@ -5,17 +5,18 @@ import { Button } from '@/components/ui/button';
 import { CustomButton } from '@/components/ui/custom-button';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { useUI } from '@/contexts/UIContext';
-import { 
-  Users, 
-  Package, 
-  ShoppingCart, 
-  TrendingUp,
-  Activity,
-  DollarSign,
+import {
+  Users,
+  Package,
+  ShoppingCart,
+  TrendUp,
+  Pulse,
+  CurrencyDollar,
   Eye,
-  Download,
-  RefreshCw
-} from 'lucide-react';
+  ArrowClockwise
+} from '@phosphor-icons/react';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 export default function MasterDashboard() {
   const { user, isDemoMode } = useDemoAuth();
@@ -28,32 +29,32 @@ export default function MasterDashboard() {
       value: '1,234',
       change: '+12%',
       icon: Users,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-[hsl(var(--chart-1))]',
+      bgColor: 'bg-[hsl(var(--chart-1))]/10',
     },
     {
       title: 'Productos',
       value: '456',
       change: '+8%',
       icon: Package,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-[hsl(var(--chart-2))]',
+      bgColor: 'bg-[hsl(var(--chart-2))]/10',
     },
     {
       title: 'Ventas',
       value: '89',
       change: '+23%',
       icon: ShoppingCart,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
+      color: 'text-[hsl(var(--chart-3))]',
+      bgColor: 'bg-[hsl(var(--chart-3))]/10',
     },
     {
       title: 'Ingresos',
       value: '$12,345',
       change: '+15%',
-      icon: DollarSign,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
+      icon: CurrencyDollar,
+      color: 'text-[hsl(var(--chart-4))]',
+      bgColor: 'bg-[hsl(var(--chart-4))]/10',
     },
   ];
 
@@ -65,11 +66,39 @@ export default function MasterDashboard() {
   ];
 
   const quickActions = [
-    { title: 'Nuevo Usuario', icon: Users, href: '/users', color: 'bg-blue-500' },
-    { title: 'Nuevo Producto', icon: Package, href: '/products', color: 'bg-green-500' },
-    { title: 'Ver Reportes', icon: TrendingUp, href: '/reports', color: 'bg-purple-500' },
-    { title: 'Configuración', icon: Activity, href: '/settings', color: 'bg-orange-500' },
+    { title: 'Nuevo Usuario', icon: Users, href: '/users', color: 'bg-[hsl(var(--chart-1))]' },
+    { title: 'Nuevo Producto', icon: Package, href: '/products', color: 'bg-[hsl(var(--chart-2))]' },
+    { title: 'Ver Reportes', icon: TrendUp, href: '/reports', color: 'bg-[hsl(var(--chart-3))]' },
+    { title: 'Configuración', icon: Pulse, href: '/settings', color: 'bg-[hsl(var(--chart-4))]' },
   ];
+
+  // Chart data
+  const monthlySalesData = [
+    { month: 'Ene', ventas: 4500, pedidos: 45 },
+    { month: 'Feb', ventas: 5200, pedidos: 52 },
+    { month: 'Mar', ventas: 4800, pedidos: 48 },
+    { month: 'Abr', ventas: 6100, pedidos: 61 },
+    { month: 'May', ventas: 5900, pedidos: 59 },
+    { month: 'Jun', ventas: 7200, pedidos: 72 },
+  ];
+
+  const categoryData = [
+    { category: 'Electrónica', value: 35 },
+    { category: 'Ropa', value: 28 },
+    { category: 'Hogar', value: 20 },
+    { category: 'Alimentos', value: 17 },
+  ];
+
+  const chartConfig = {
+    ventas: {
+      label: 'Ventas',
+      color: 'hsl(var(--chart-1))',
+    },
+    pedidos: {
+      label: 'Pedidos',
+      color: 'hsl(var(--chart-2))',
+    },
+  };
 
   return (
     <div className="space-y-6">
@@ -85,7 +114,7 @@ export default function MasterDashboard() {
           <CustomButton
             variant="outline"
             size="sm"
-            leftIcon={<RefreshCw className="h-4 w-4" />}
+            leftIcon={<ArrowClockwise className="h-4 w-4" weight="bold" />}
           >
             Actualizar
           </CustomButton>
@@ -101,7 +130,7 @@ export default function MasterDashboard() {
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
                 <div className={`rounded-full p-2 ${stat.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
+                  <Icon className={`h-4 w-4 ${stat.color}`} weight="duotone" />
                 </div>
               </CardHeader>
               <CardContent>
@@ -134,7 +163,7 @@ export default function MasterDashboard() {
                     variant="outline"
                     className="h-20 flex-col gap-2"
                     leftIcon={<div className={`rounded-full p-2 ${action.color}`}>
-                      <Icon className="h-4 w-4 text-white" />
+                      <Icon className="h-4 w-4 text-white" weight="bold" />
                     </div>}
                   >
                     <span className="text-sm">{action.title}</span>
@@ -158,7 +187,7 @@ export default function MasterDashboard() {
               {recentActivity.map((activity) => (
                 <div key={activity.id} className="flex items-center space-x-4">
                   <div className="rounded-full bg-muted p-2">
-                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <Users className="h-4 w-4 text-muted-foreground" weight="duotone" />
                   </div>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none">
@@ -173,7 +202,7 @@ export default function MasterDashboard() {
             </div>
             <div className="mt-4">
               <Button variant="outline" size="sm" className="w-full">
-                <Eye className="h-4 w-4 mr-2" />
+                <Eye className="h-4 w-4 mr-2" weight="duotone" />
                 Ver toda la actividad
               </Button>
             </div>
@@ -191,31 +220,61 @@ export default function MasterDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <TrendingUp className="h-12 w-12 mx-auto mb-2" />
-                <p>Gráfico de ventas</p>
-                <p className="text-sm">Integración con Chart.js próximamente</p>
-              </div>
-            </div>
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
+              <AreaChart data={monthlySalesData}>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <YAxis
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                  tickFormatter={(value) => `$${value}`}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Area
+                  dataKey="ventas"
+                  type="monotone"
+                  fill="var(--color-ventas)"
+                  stroke="var(--color-ventas)"
+                  fillOpacity={0.4}
+                />
+              </AreaChart>
+            </ChartContainer>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Distribución de Productos</CardTitle>
+            <CardTitle>Distribución por Categoría</CardTitle>
             <CardDescription>
-              Categorías más populares
+              Productos por categoría
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <Package className="h-12 w-12 mx-auto mb-2" />
-                <p>Gráfico de productos</p>
-                <p className="text-sm">Integración con Chart.js próximamente</p>
-              </div>
-            </div>
+            <ChartContainer config={chartConfig} className="h-[250px] w-full">
+              <BarChart data={categoryData}>
+                <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="category"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                />
+                <YAxis
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                />
+                <ChartTooltip content={<ChartTooltipContent />} />
+                <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={8} />
+              </BarChart>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
