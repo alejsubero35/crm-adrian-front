@@ -60,6 +60,18 @@ const defaultSidebarItems: SidebarItem[] = [
     href: '/products',
   },
   {
+    id: 'proveedores',
+    label: 'Lista Proveedores',
+    icon: Package,
+    href: '/proveedores',
+  },
+  {
+    id: 'clientes',
+    label: 'Lista de Clientes',
+    icon: Package,
+    href: '/clientes',
+  },
+  {
     id: 'reports',
     label: 'Reportes',
     icon: ChartBar,

@@ -24,6 +24,8 @@ const NavigationSettings = React.lazy(() => import('@/pages/NavigationSettings')
 const SalesReport = React.lazy(() => import('@/pages/reports/SalesReport'));
 const InventoryReport = React.lazy(() => import('@/pages/reports/InventoryReport'));
 const Login = React.lazy(() => import('@/features/auth/LoginPage'));
+const ClientesCRUD = React.lazy(() => import('@/pages/ClientesCRUD'));
+const ProveedoresCRUD = React.lazy(() => import('@/pages/ProveedoresCRUD'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'));
 
@@ -65,6 +67,22 @@ export const routeConfig: RouteConfig[] = [
     label: 'Productos',
     icon: Package,
     component: ProductCRUD,
+    showInSidebar: true,
+  },
+  {
+    id: 'proveedores',
+    path: '/proveedores',
+    label: 'Lista Proveedores',
+    icon: Package,
+    component: ProveedoresCRUD,
+    showInSidebar: true,
+  },
+  {
+    id: 'clientes',
+    path: '/clientes',
+    label: 'Lista de Clientes',
+    icon: Package,
+    component: ClientesCRUD,
     showInSidebar: true,
   },
   

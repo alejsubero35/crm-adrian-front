@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "eslint .",
     "test": "vitest",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:crud": "node scripts/generate-crud.js"
   },
   "dependencies": {
     "@fontsource/geist-sans": "^5.2.5",

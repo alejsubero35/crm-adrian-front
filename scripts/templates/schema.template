@@ -1,0 +1,7 @@
+import { z } from 'zod';
+
+export const {{ENTITY_CAMEL}}Schema = z.object({
+{{FIELDS}}
+});
+
+export type {{ENTITY_CAMEL}}FormData = z.infer<typeof {{ENTITY_CAMEL}}Schema>;
