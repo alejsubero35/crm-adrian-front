@@ -1,0 +1,258 @@
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Package, Plus, PencilSimple, Trash } from '@phosphor-icons/react';
+import { DataTable, DataTableColumn } from '@/components/DataTable';
+import { EditModal } from '@/components/ui/EditModal';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { useToast } from '@/hooks/use-toast';
+import { {{ENTITY_CAMEL}}Schema, {{ENTITY_CAMEL}}FormData } from '@/validations/{{ENTITY_LOWER}}.schema';
+import { ValidatedInput } from '@/components/ui/ValidatedInput';
+import { ValidatedSelect } from '@/components/ui/ValidatedSelect';
+import { ValidatedTextarea } from '@/components/ui/ValidatedTextarea';
+import { ValidatedCheckbox } from '@/components/ui/ValidatedCheckbox';
+
+type {{ENTITY_PASCAL}} = {
+  id: number;
+{{TYPE_FIELDS}}
+};
+
+export default function {{ENTITY_PASCAL}}CRUD() {
+  const { toast } = useToast();
+  
+  const [{{ENTITY_LOWER}}s, set{{ENTITY_PASCAL}}s] = useState<{{ENTITY_PASCAL}}[]>([
+{{MOCK_DATA}}
+  ]);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editing{{ENTITY_PASCAL}}, setEditing{{ENTITY_PASCAL}}] = useState<{{ENTITY_PASCAL}} | null>(null);
+  
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [{{ENTITY_LOWER}}ToDelete, set{{ENTITY_PASCAL}}ToDelete] = useState<{{ENTITY_PASCAL}} | null>(null);
+
+  const createForm = useForm<{{ENTITY_CAMEL}}FormData>({
+    resolver: zodResolver({{ENTITY_CAMEL}}Schema),
+    defaultValues: {
+{{DEFAULT_VALUES}}
+    },
+    mode: 'onSubmit',
+  });
+
+  const editForm = useForm<{{ENTITY_CAMEL}}FormData>({
+    resolver: zodResolver({{ENTITY_CAMEL}}Schema),
+    defaultValues: {
+{{DEFAULT_VALUES}}
+    },
+    mode: 'onSubmit',
+  });
+
+  const handleEdit = ({{ENTITY_LOWER}}: {{ENTITY_PASCAL}}) => {
+    setEditing{{ENTITY_PASCAL}}({{ENTITY_LOWER}});
+    editForm.reset({
+{{EDIT_RESET}}
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const handleCreate = () => {
+    createForm.reset();
+    setIsCreateModalOpen(true);
+  };
+
+  const handleDeleteClick = ({{ENTITY_LOWER}}: {{ENTITY_PASCAL}}) => {
+    set{{ENTITY_PASCAL}}ToDelete({{ENTITY_LOWER}});
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if ({{ENTITY_LOWER}}ToDelete) {
+      set{{ENTITY_PASCAL}}s({{ENTITY_LOWER}}s.filter(p => p.id !== {{ENTITY_LOWER}}ToDelete.id));
+      setIsDeleteDialogOpen(false);
+      set{{ENTITY_PASCAL}}ToDelete(null);
+      
+      toast({
+        variant: 'success',
+        title: '{{ENTITY_TITLE}} eliminado',
+        description: `"${{{ENTITY_LOWER}}ToDelete.name}" ha sido eliminado exitosamente.`,
+      });
+    }
+  };
+
+  const handleSaveEdit = async (data: {{ENTITY_CAMEL}}FormData) => {
+    if (editing{{ENTITY_PASCAL}}) {
+      set{{ENTITY_PASCAL}}s({{ENTITY_LOWER}}s.map(p => 
+        p.id === editing{{ENTITY_PASCAL}}.id ? { ...p, ...data } as {{ENTITY_PASCAL}} : p
+      ));
+      setIsEditModalOpen(false);
+      setEditing{{ENTITY_PASCAL}}(null);
+      editForm.reset();
+      
+      toast({
+        variant: 'success',
+        title: '{{ENTITY_TITLE}} actualizado',
+        description: `"${data.name}" ha sido actualizado exitosamente.`,
+      });
+    }
+  };
+
+  const handleSaveCreate = async (data: {{ENTITY_CAMEL}}FormData) => {
+    const new{{ENTITY_PASCAL}}: {{ENTITY_PASCAL}} = {
+      id: Math.max(...{{ENTITY_LOWER}}s.map(p => p.id)) + 1,
+{{CREATE_FIELDS}
+    };
+    set{{ENTITY_PASCAL}}s([...{{ENTITY_LOWER}}s, new{{ENTITY_PASCAL}}]);
+    setIsCreateModalOpen(false);
+    createForm.reset();
+    
+    toast({
+      variant: 'success',
+      title: '{{ENTITY_TITLE}} creado exitosamente',
+      description: `"${data.name}" ha sido agregado al catálogo.`,
+    });
+  };
+
+  const columns: DataTableColumn<{{ENTITY_PASCAL}}>[] = [
+{{COLUMNS}}
+    {
+      key: 'actions',
+      header: 'Acciones',
+      render: ({ item }) => (
+        <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleEdit(item)}
+          >
+            <PencilSimple className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleDeleteClick(item)}
+          >
+            <Trash className="h-4 w-4 text-red-500" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">{{SECTION_TITLE}}</h1>
+          <p className="text-slate-500">Administra los {{ENTITY_LOWER}}s del sistema</p>
+        </div>
+        <Button onClick={handleCreate}>
+          <Plus className="h-4 w-4 mr-2" />
+          Nuevo {{ENTITY_TITLE}}
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-slate-500">Total {{ENTITY_TITLE}}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{{{{ENTITY_LOWER}}s.length}}</div>
+            <p className="text-xs text-muted-foreground">Registrados en el sistema</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-slate-500">Activos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{{{{ENTITY_LOWER}}s.filter(p => p.isActive !== false).length}}</div>
+            <p className="text-xs text-muted-foreground">Actualmente activos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-slate-500">Inactivos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{{{{ENTITY_LOWER}}s.filter(p => p.isActive === false).length}}</div>
+            <p className="text-xs text-muted-foreground">Desactivados temporalmente</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* DataTable */}
+      <DataTable<{{ENTITY_PASCAL}}>
+        items={{{ENTITY_LOWER}}s}
+        columns={columns}
+        rowKey={({ item }) => String(item.id)}
+        wrapInCard
+      />
+
+      {/* Edit Modal */}
+      <EditModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        title="Editar {{ENTITY_TITLE}}"
+        description="Modifica la información del {{ENTITY_LOWER}} seleccionado"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={editForm.handleSubmit(handleSaveEdit)}
+              disabled={editForm.formState.isSubmitting}
+            >
+              Guardar Cambios
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={editForm.handleSubmit(handleSaveEdit)} className="space-y-4">
+{{EDIT_FORM_FIELDS}
+        </form>
+      </EditModal>
+
+      {/* Create Modal */}
+      <EditModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        title="Nuevo {{ENTITY_TITLE}}"
+        description="Ingresa la información del nuevo {{ENTITY_LOWER}}"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={createForm.handleSubmit(handleSaveCreate)}
+              disabled={createForm.formState.isSubmitting}
+            >
+              Crear {{ENTITY_TITLE}}
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={createForm.handleSubmit(handleSaveCreate)} className="space-y-4">
+{{CREATE_FORM_FIELDS}
+        </form>
+      </EditModal>
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        open={isDeleteDialogOpen}
+        title="Confirmar Eliminación"
+        description={`¿Estás seguro de que deseas eliminar el {{ENTITY_LOWER}} "${{{ENTITY_LOWER}}ToDelete?.name}"? Esta acción no se puede deshacer.`}
+        confirmLabel="Eliminar"
+        cancelLabel="Cancelar"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsDeleteDialogOpen(false)}
+      />
+    </div>
+  );
+}
