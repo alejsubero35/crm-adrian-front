@@ -52,6 +52,13 @@
   --sidebar-accent-foreground: 27 88% 53%;
   --sidebar-border: 213 40% 35%;    /* subtle border on navy */
   --sidebar-ring: 27 88% 53%;
+
+  /* Chart colors for Recharts */
+  --chart-1: 255 67% 75%;      /* primary purple */
+  --chart-2: 260 27% 54%;      /* secondary purple */
+  --chart-3: 27 88% 53%;       /* orange accent */
+  --chart-4: 213 76% 26%;      /* navy */
+  --chart-5: 0 84.2% 60.2%;    /* red */
   }
 
   .dark {
