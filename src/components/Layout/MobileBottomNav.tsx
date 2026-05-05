@@ -1,17 +1,17 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useNavigationConfig, AVAILABLE_ICONS } from '@/contexts/NavigationConfigContext';
+import { AVAILABLE_ICONS } from '@/contexts/NavigationConfigContext';
+import { MOBILE_FOOTER_ITEMS } from '@/config/mobileFooter';
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const { getEnabledItems } = useNavigationConfig();
 
   const isActive = (href: string) => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
-  const navItems = getEnabledItems();
+  const navItems = MOBILE_FOOTER_ITEMS;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">

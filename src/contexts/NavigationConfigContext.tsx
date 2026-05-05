@@ -10,7 +10,9 @@ import {
   FileText,
   TrendUp,
   Calendar,
-  ChatCircle
+  ChatCircle,
+  QrCode,
+  ClipboardText
 } from '@phosphor-icons/react';
 
 export interface NavItem {
@@ -35,6 +37,8 @@ export const AVAILABLE_ICONS: Record<string, PhosphorIcon> = {
   TrendingUp: TrendUp,
   Calendar,
   MessageSquare: ChatCircle,
+  QrCode,
+  ClipboardText,
 };
 
 // Configuración por defecto
@@ -65,12 +69,36 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
     isCenter: true, // Este es el botón central destacado
   },
   {
+    id: 'scan',
+    label: 'Escanear',
+    icon: 'QrCode',
+    href: '/scan',
+    enabled: true,
+    order: 3,
+  },
+  {
+    id: 'qrs',
+    label: 'Etiquetas',
+    icon: 'QrCode',
+    href: '/qrs',
+    enabled: true,
+    order: 4,
+  },
+  {
+    id: 'plans',
+    label: 'Planes',
+    icon: 'ClipboardText',
+    href: '/planes',
+    enabled: true,
+    order: 5,
+  },
+  {
     id: 'settings',
     label: 'Ajustes',
     icon: 'Settings',
     href: '/settings',
     enabled: true,
-    order: 3,
+    order: 6,
   },
   {
     id: 'reports',
@@ -78,7 +106,7 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
     icon: 'BarChart3',
     href: '/reports',
     enabled: true,
-    order: 4,
+    order: 7,
   },
 ];
 
@@ -96,12 +124,34 @@ const NavigationConfigContext = createContext<NavigationConfigContextType | unde
 const STORAGE_KEY = 'navigation_config';
 
 export function NavigationConfigProvider({ children }: { children: React.ReactNode }) {
+  const mergeWithDefaults = (storedItems: NavItem[]): NavItem[] => {
+    const byId = new Map(storedItems.map((item) => [item.id, item]));
+    const merged = DEFAULT_NAV_ITEMS.map((defaultItem) => {
+      const existing = byId.get(defaultItem.id);
+      return existing ? { ...defaultItem, ...existing } : defaultItem;
+    });
+
+    // Preserve custom user-created items not present in defaults
+    storedItems.forEach((item) => {
+      if (!merged.some((mergedItem) => mergedItem.id === item.id)) {
+        merged.push(item);
+      }
+    });
+
+    return merged
+      .map((item, index) => ({ ...item, order: Number.isFinite(item.order) ? item.order : index }))
+      .sort((a, b) => a.order - b.order);
+  };
+
   const [navItems, setNavItems] = useState<NavItem[]>(() => {
     // Cargar desde localStorage si existe
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored) as NavItem[];
+        if (Array.isArray(parsed)) {
+          return mergeWithDefaults(parsed);
+        }
       } catch (e) {
         console.error('Error loading navigation config:', e);
       }

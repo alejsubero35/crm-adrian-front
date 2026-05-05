@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, Settings, FileText, BarChart3, Package } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, FileText, BarChart3, Package, QrCode, ClipboardList } from 'lucide-react';
 
 export interface RouteConfig {
   id: string;
@@ -25,6 +25,9 @@ const SalesReport = React.lazy(() => import('@/pages/reports/SalesReport'));
 const InventoryReport = React.lazy(() => import('@/pages/reports/InventoryReport'));
 const Login = React.lazy(() => import('@/features/auth/LoginPage'));
 const ClientesCRUD = React.lazy(() => import('@/pages/ClientesCRUD'));
+const PlanesCRUD = React.lazy(() => import('@/pages/PlanesCRUD'));
+const HvacScanPage = React.lazy(() => import('@/pages/HvacScanPage'));
+const QrGeneratorPage = React.lazy(() => import('@/pages/QrGeneratorPage'));
 const ProveedoresCRUD = React.lazy(() => import('@/pages/ProveedoresCRUD'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'));
@@ -84,6 +87,38 @@ export const routeConfig: RouteConfig[] = [
     icon: Package,
     component: ClientesCRUD,
     showInSidebar: true,
+  },
+  {
+    id: 'qrs',
+    path: '/qrs',
+    label: 'Etiquetas QR',
+    icon: QrCode,
+    component: QrGeneratorPage,
+    showInSidebar: true,
+  },
+  {
+    id: 'planes',
+    path: '/planes',
+    label: 'Planes HVAC',
+    icon: ClipboardList,
+    component: PlanesCRUD,
+    showInSidebar: true,
+  },
+  {
+    id: 'scan-qr',
+    path: '/scan/:uuid',
+    label: 'Escaneo QR',
+    icon: QrCode,
+    component: HvacScanPage,
+    showInSidebar: true,
+  },
+  {
+    id: 'scan-qr-home',
+    path: '/scan',
+    label: 'Escaneo QR',
+    icon: QrCode,
+    component: HvacScanPage,
+    showInSidebar: false,
   },
   
   {

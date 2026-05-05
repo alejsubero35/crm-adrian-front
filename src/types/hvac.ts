@@ -1,0 +1,88 @@
+export type Customer = {
+  id?: number;
+  name: string;
+  tax_id?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+};
+
+export type Plan = {
+  id: number;
+  name: string;
+  description?: string | null;
+  maintenance_frequency_days: number;
+};
+
+export type MaintenanceLog = {
+  service_type: string;
+  description?: string | null;
+  photos?: string[];
+  technician?: {
+    name?: string;
+    email?: string;
+  };
+  created_at?: string | null;
+};
+
+export type EquipmentDetails = {
+  qr_uuid: string;
+  equipment: {
+    brand: string;
+    model: string;
+    serial_number: string;
+    type: string;
+    capacity: string;
+    refrigerant_type: string;
+    current_status: 'operational' | 'maintenance_due' | 'in_repair' | 'out_of_service' | string;
+    last_service_at?: string | null;
+    next_service_at?: string | null;
+    gps_coordinates?: string | null;
+  };
+  customer?: Customer;
+  plan?: Plan;
+  maintenance_logs?: MaintenanceLog[];
+};
+
+export type ScanAvailableResponse = {
+  qr_uuid: string;
+  status: 'available';
+  action: string;
+  message: string;
+};
+
+export type ScanResponse = ScanAvailableResponse | EquipmentDetails;
+
+export type RegisterEquipmentPayload = {
+  qr_uuid: string;
+  plan_id: number;
+  customer: {
+    name: string;
+    tax_id?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+  };
+  brand: string;
+  model: string;
+  serial_number: string;
+  type: string;
+  capacity: string;
+  refrigerant_type: string;
+  current_status?: 'operational' | 'maintenance_due' | 'in_repair' | 'out_of_service';
+  last_service_at?: string;
+  gps_coordinates?: string;
+};
+
+export type CreateMaintenanceLogPayload = {
+  equipment_qr_uuid: string;
+  service_type: string;
+  description?: string;
+  photos_json?: string[];
+};
+
+export type QrItem = {
+  uuid: string;
+  status: 'available' | 'assigned' | string;
+  created_at?: string | null;
+};

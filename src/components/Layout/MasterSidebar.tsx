@@ -11,6 +11,8 @@ import {
   FileText,
   ChartBar,
   Package,
+  QrCode,
+  ClipboardText,
   Question,
   CaretDown,
   CaretRight,
@@ -70,6 +72,24 @@ const defaultSidebarItems: SidebarItem[] = [
     label: 'Lista de Clientes',
     icon: Package,
     href: '/clientes',
+  },
+  {
+    id: 'qrs',
+    label: 'Etiquetas QR',
+    icon: QrCode,
+    href: '/qrs',
+  },
+  {
+    id: 'planes',
+    label: 'Planes HVAC',
+    icon: ClipboardText,
+    href: '/planes',
+  },
+  {
+    id: 'scan',
+    label: 'Escaneo QR',
+    icon: QrCode,
+    href: '/scan',
   },
   {
     id: 'reports',
