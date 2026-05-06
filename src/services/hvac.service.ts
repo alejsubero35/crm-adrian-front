@@ -6,6 +6,7 @@ import type {
   EquipmentDetails,
   RegisterEquipmentPayload,
   CreateMaintenanceLogPayload,
+  QrBatch,
   QrItem,
 } from '@/types/hvac';
 
@@ -85,8 +86,22 @@ export const hvacService = {
     return unwrapList(response);
   },
 
+  async getQrBatches() {
+    const response = await http.get<QrBatch[] | PaginatedResponse<QrBatch>>('/qr-batches');
+    return unwrapList(response);
+  },
+
+  async getQrsByBatch(batchId: number) {
+    const response = await http.get<QrItem[] | PaginatedResponse<QrItem>>(`/qr-batches/${batchId}/qrs`);
+    return unwrapList(response);
+  },
+
+  async markBatchPrinted(batchId: number) {
+    return http.put<{ message: string; batch?: QrBatch }>(`/qr-batches/${batchId}/printed`, {});
+  },
+
   async generateQrs(quantity: number) {
-    return http.post<{ message: string; quantity: number; data: QrItem[] | PaginatedResponse<QrItem> }>(
+    return http.post<{ message: string; quantity: number; batch?: QrBatch; data: QrItem[] | PaginatedResponse<QrItem> }>(
       '/qrs/generate',
       { quantity }
     );

@@ -35,34 +35,38 @@ export default function MasterDashboard() {
     {
       title: 'Usuarios',
       value: String(dashboardData?.stats.total_users ?? 0),
-      change: '',
       icon: Users,
-      color: 'text-[hsl(var(--chart-1))]',
-      bgColor: 'bg-[hsl(var(--chart-1))]/10',
+      iconColor: 'text-[hsl(var(--chart-1))]',
+      iconBg: 'bg-[hsl(var(--chart-1))]/15',
+      cardTint: 'from-[hsl(var(--chart-1))]/20 via-[hsl(var(--chart-1))]/5 to-transparent',
+      borderTint: 'border-[hsl(var(--chart-1))]/30',
     },
     {
       title: 'Clientes',
       value: String(dashboardData?.stats.total_customers ?? 0),
-      change: '',
       icon: Package,
-      color: 'text-[hsl(var(--chart-2))]',
-      bgColor: 'bg-[hsl(var(--chart-2))]/10',
+      iconColor: 'text-[hsl(var(--chart-2))]',
+      iconBg: 'bg-[hsl(var(--chart-2))]/15',
+      cardTint: 'from-[hsl(var(--chart-2))]/20 via-[hsl(var(--chart-2))]/5 to-transparent',
+      borderTint: 'border-[hsl(var(--chart-2))]/30',
     },
     {
       title: 'Equipos Vinculados',
       value: String(dashboardData?.stats.total_equipments_linked ?? 0),
-      change: '',
       icon: ShoppingCart,
-      color: 'text-[hsl(var(--chart-3))]',
-      bgColor: 'bg-[hsl(var(--chart-3))]/10',
+      iconColor: 'text-[hsl(var(--chart-3))]',
+      iconBg: 'bg-[hsl(var(--chart-3))]/15',
+      cardTint: 'from-[hsl(var(--chart-3))]/20 via-[hsl(var(--chart-3))]/5 to-transparent',
+      borderTint: 'border-[hsl(var(--chart-3))]/30',
     },
     {
       title: 'Ingresos',
       value: `$${Number(dashboardData?.stats.total_income ?? 0).toLocaleString()}`,
-      change: '',
       icon: CurrencyDollar,
-      color: 'text-[hsl(var(--chart-4))]',
-      bgColor: 'bg-[hsl(var(--chart-4))]/10',
+      iconColor: 'text-[hsl(var(--chart-4))]',
+      iconBg: 'bg-[hsl(var(--chart-4))]/15',
+      cardTint: 'from-[hsl(var(--chart-4))]/20 via-[hsl(var(--chart-4))]/5 to-transparent',
+      borderTint: 'border-[hsl(var(--chart-4))]/30',
     },
   ];
 
@@ -140,6 +144,7 @@ export default function MasterDashboard() {
           <CustomButton
             variant="outline"
             size="sm"
+            className="text-black hover:text-black"
             leftIcon={<ArrowClockwise className="h-4 w-4" weight="bold" />}
             onClick={() => refetch()}
           >
@@ -153,15 +158,19 @@ export default function MasterDashboard() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
+            <Card
+              key={stat.title}
+              className={`relative overflow-hidden border ${stat.borderTint} shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md`}
+            >
+              <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${stat.cardTint}`} />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <div className={`rounded-full p-2 ${stat.bgColor}`}>
-                  <Icon className={`h-4 w-4 ${stat.color}`} weight="duotone" />
+                <CardTitle className="text-sm font-semibold">{stat.title}</CardTitle>
+                <div className={`rounded-full p-2.5 shadow-sm ${stat.iconBg}`}>
+                  <Icon className={`h-4 w-4 ${stat.iconColor}`} weight="duotone" />
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+              <CardContent className="relative">
+                <div className="text-3xl font-bold tracking-tight">{stat.value}</div>
                 <p className="text-xs text-muted-foreground">
                   Datos en tiempo real desde BD
                 </p>

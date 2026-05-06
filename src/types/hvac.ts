@@ -82,7 +82,20 @@ export type CreateMaintenanceLogPayload = {
 };
 
 export type QrItem = {
+  id?: number;
+  batch_id?: number | null;
   uuid: string;
   status: 'available' | 'assigned' | string;
   created_at?: string | null;
+};
+
+export type QrBatch = {
+  id: number;
+  quantity: number;
+  qrs_count: number;
+  created_by?: number | null;
+  created_at?: string | null;
+  printed_at?: string | null;
+  first_qr_uuid?: string | null;
+  last_qr_uuid?: string | null;
 };

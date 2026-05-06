@@ -117,13 +117,23 @@ export function DataTable<T>(props: DataTableProps<T>) {
 
   const canExpand = typeof renderExpanded === "function";
 
+  // Global responsive rule:
+  // Action columns collapse first on smaller widths unless the page overrides it.
+  const effectiveHideBelow = React.useCallback((col: DataTableColumn<T>): HideBelow | undefined => {
+    if (col.hideBelow) return col.hideBelow;
+    return col.id.toLowerCase() === "actions" ? "xl" : undefined;
+  }, []);
+
   /** Columns currently hidden due to responsive breakpoints */
   const hiddenColumns = React.useMemo(
     () =>
       columns.filter(
-        (col) => col.hideBelow && windowWidth < BREAKPOINTS[col.hideBelow]
+        (col) => {
+          const hideBelow = effectiveHideBelow(col);
+          return hideBelow ? windowWidth < BREAKPOINTS[hideBelow] : false;
+        }
       ),
-    [columns, windowWidth]
+    [columns, windowWidth, effectiveHideBelow]
   );
 
   /** Show the toggle chevron when there are hidden columns or a custom expand fn */
@@ -148,11 +158,14 @@ export function DataTable<T>(props: DataTableProps<T>) {
                 <TableHead className={`${headCellBaseClass} w-8 text-center`} />
               )}
               {columns.map((col) => (
+                (() => {
+                  const hideBelow = effectiveHideBelow(col);
+                  return (
                 <TableHead
                   key={col.id}
                   className={[
                     headCellBaseClass,
-                    col.hideBelow ? HIDE_CELL_CLASS[col.hideBelow] : "",
+                    hideBelow ? HIDE_CELL_CLASS[hideBelow] : "",
                     col.headerClassName || "",
                   ]
                     .filter(Boolean)
@@ -160,6 +173,8 @@ export function DataTable<T>(props: DataTableProps<T>) {
                 >
                   {col.header}
                 </TableHead>
+                  );
+                })()
               ))}
             </TableRow>
           </TableHeader>
@@ -195,11 +210,14 @@ export function DataTable<T>(props: DataTableProps<T>) {
                     )}
 
                     {columns.map((col) => (
+                      (() => {
+                        const hideBelow = effectiveHideBelow(col);
+                        return (
                       <TableCell
                         key={col.id}
                         className={[
                           bodyCellBaseClass,
-                          col.hideBelow ? HIDE_CELL_CLASS[col.hideBelow] : "",
+                          hideBelow ? HIDE_CELL_CLASS[hideBelow] : "",
                           col.cellClassName || "",
                         ]
                           .filter(Boolean)
@@ -207,6 +225,8 @@ export function DataTable<T>(props: DataTableProps<T>) {
                       >
                         {col.cell({ item, index })}
                       </TableCell>
+                        );
+                      })()
                     ))}
                   </TableRow>
 
@@ -218,9 +238,10 @@ export function DataTable<T>(props: DataTableProps<T>) {
                       <TableCell
                         colSpan={
                           columns.filter(
-                            (col) =>
-                              !col.hideBelow ||
-                              windowWidth >= BREAKPOINTS[col.hideBelow]
+                            (col) => {
+                              const hideBelow = effectiveHideBelow(col);
+                              return !hideBelow || windowWidth >= BREAKPOINTS[hideBelow];
+                            }
                           ).length
                         }
                         className="py-3 px-4"
