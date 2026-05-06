@@ -5,6 +5,14 @@ import { getAllRoutes, hasRouteAccess } from '@/config/routes';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { toast } from 'sonner';
+
+const PermissionDeniedRedirect = () => {
+  React.useEffect(() => {
+    toast.error('No tienes permisos para esta acción');
+  }, []);
+  return <Navigate to="/unauthorized" replace />;
+};
 
 // Loading fallback component
 const RouteLoadingFallback = () => (
@@ -52,13 +60,14 @@ class ErrorBoundary extends React.Component<
 export function AppRoutes() {
   const { isAuthenticated, user } = useDemoAuth();
   const userRoles = user?.roles || [];
+  const userPermissions = user?.permissions || [];
   const allRoutes = getAllRoutes();
 
   const renderRoute = (routeConfig: any) => {
     const { component: Component, path, isPublic, requiredRoles } = routeConfig;
     
     // Check if user has access to this route
-    const hasAccess = hasRouteAccess(routeConfig, userRoles);
+    const hasAccess = hasRouteAccess(routeConfig, userRoles as string[], userPermissions as string[]);
     
     // If route requires authentication and user is not authenticated
     if (!isPublic && !isAuthenticated) {
@@ -77,7 +86,17 @@ export function AppRoutes() {
         <Route
           key={path}
           path={path}
-          element={<Navigate to="/unauthorized" replace />}
+          element={<PermissionDeniedRedirect />}
+        />
+      );
+    }
+
+    if (!isPublic && routeConfig.requiredPermissions && routeConfig.requiredPermissions.length > 0 && !hasAccess) {
+      return (
+        <Route
+          key={path}
+          path={path}
+          element={<PermissionDeniedRedirect />}
         />
       );
     }

@@ -115,7 +115,9 @@
   }
 
   .glass-sidebar {
-    @apply backdrop-blur-sm bg-slate-900/95 border-r border-slate-800/50;
+    backdrop-filter: blur(4px);
+    background-color: hsl(var(--sidebar-background) / 0.95);
+    border-right: 1px solid hsl(var(--sidebar-border) / 0.5);
   }
 }
 

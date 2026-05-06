@@ -1,18 +1,29 @@
-
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/useAuth";
-import { Loader2, Mail, Lock, Eye, EyeOff, ShoppingCart, ArrowRight, Fingerprint } from "lucide-react";
-import { Navigate, Link } from "react-router-dom";
-import { apiService } from "@/services/api.service";
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/useAuth';
+import {
+  Loader2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Fingerprint,
+  QrCode,
+  Wrench,
+  Wind,
+} from 'lucide-react';
+import { Navigate, Link } from 'react-router-dom';
+import { apiService } from '@/services/api.service';
 import { authenticateWithWebAuthn, isWebAuthnAvailable } from '@/services/webauthn.service';
 
+const LOGO_SRC = '/img/logo_solo.png';
+
 export default function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [capsOn, setCapsOn] = useState(false);
   const { login, isLoading } = useAuth();
@@ -24,7 +35,6 @@ export default function Login() {
     setWebauthnAvailable(isWebAuthnAvailable());
   }, []);
 
-  // Si existe un token, redirigir al dashboard
   if (token) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -34,77 +44,133 @@ export default function Login() {
     await login(email, password);
   };
 
-
   const handleWebAuthnLogin = async () => {
     try {
       setWebauthnLoading(true);
-      const token = await authenticateWithWebAuthn(email || undefined);
-      if (token) {
-        apiService.setToken(token);
-        // reload or navigate to dashboard - the auth context should detect token
+      const authToken = await authenticateWithWebAuthn(email || undefined);
+      if (authToken) {
+        apiService.setToken(authToken);
         window.location.href = '/dashboard';
       }
     } catch (err) {
       console.error('WebAuthn login failed', err);
-      // Optionally show a toast here
     } finally {
       setWebauthnLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 bg-gradient-to-br from-blue-primary/10 via-white to-soft-purple/30">
-      {/* Brand / Left panel */}
-      <div className="hidden md:flex items-center justify-center p-10">
-        <div className="w-full max-w-lg rounded-2xl overflow-hidden ring-1 ring-gray-100 shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-          <div className="bg-gradient-to-br from-blue-primary to-blue-secondary text-white p-8">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center overflow-hidden">
-                <img src="/img/ms-icon-310x310.png" alt="Logo Venta Simplyfy" className="h-6 w-6 object-contain" />
+    <div className="relative min-h-screen overflow-hidden bg-zinc-950 text-zinc-100">
+      {/* Ambiente: malla + degradados (calor / frío → lectura HVAC) */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(241,125,30,0.22),transparent_55%)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_100%_100%,rgba(56,189,248,0.08),transparent_50%)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35] bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_40%,black,transparent)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-[hsl(var(--primary)/0.12)] blur-[100px]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-sky-500/10 blur-[90px]"
+        aria-hidden
+      />
+
+      <div className="relative z-10 mx-auto grid min-h-screen max-w-[1400px] lg:grid-cols-[1.05fr_0.95fr]">
+        {/* Panel marca — desktop */}
+        <aside className="relative hidden flex-col justify-between px-10 py-12 lg:flex xl:px-16 xl:py-14">
+          <div>
+            <div className="flex items-center gap-4">
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset,0_24px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-md">
+                <img src={LOGO_SRC} alt="" className="h-10 w-10 object-contain" width={40} height={40} />
               </div>
-              <h2 className="text-2xl font-semibold tracking-tight">Venta Simplyfy</h2>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+                  IJF CRM
+                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-white xl:text-3xl">
+                  Operaciones HVAC en campo
+                </h1>
+              </div>
             </div>
-            <p className="mt-3 text-white/90">Punto de venta rápido, moderno y pensado para operadores.</p>
-          </div>
-          <div className="bg-white p-8">
-            <ul className="space-y-3 text-gray-700 text-sm">
-              <li className="flex items-center gap-2"><span className="inline-block h-2 w-2 rounded-full bg-emerald-500" /> Atajos de teclado para máxima velocidad</li>
-              <li className="flex items-center gap-2"><span className="inline-block h-2 w-2 rounded-full bg-blue-primary" /> Flujo de cobro claro y sin fricción</li>
-              <li className="flex items-center gap-2"><span className="inline-block h-2 w-2 rounded-full bg-amber-400" /> Resumen y registro integrado</li>
+            <p className="mt-8 max-w-md text-base leading-relaxed text-zinc-400">
+              Control de activos, mantenimiento y etiquetas QR en un solo panel. Pensado para técnicos y
+              administración con la misma claridad en móvil y escritorio.
+            </p>
+
+            <ul className="mt-10 space-y-4">
+              {[
+                {
+                  icon: QrCode,
+                  title: 'Vínculo por primer escaneo',
+                  desc: 'QR físicos, registro rápido y ficha técnica siempre a mano.',
+                },
+                {
+                  icon: Wrench,
+                  title: 'Historial de mantenimiento',
+                  desc: 'Timeline de servicios, estados y próximas visitas programadas.',
+                },
+                {
+                  icon: Wind,
+                  title: 'Listo para operar',
+                  desc: 'Flujo de acceso seguro y roles alineados a tu equipo en terreno.',
+                },
+              ].map(({ icon: Icon, title, desc }) => (
+                <li
+                  key={title}
+                  className="group flex gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 transition-colors hover:border-[hsl(var(--primary)/0.35)] hover:bg-white/[0.05]"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] ring-1 ring-[hsl(var(--primary)/0.25)]">
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </span>
+                  <div>
+                    <p className="font-semibold text-white">{title}</p>
+                    <p className="mt-0.5 text-sm text-zinc-500">{desc}</p>
+                  </div>
+                </li>
+              ))}
             </ul>
           </div>
-        </div>
-      </div>
 
-      {/* Form / Right panel */}
-  <div className="flex flex-col items-center justify-center p-6 md:p-10 md:flex-row md:items-center">
-        {/* Mobile header with brand logo - visible only on small screens */}
-        <div className="flex flex-col items-center gap-3 mb-6 md:hidden">
-            <div className="bg-transparent rounded-2xl p-2">
-            
+          <p className="text-xs text-zinc-600">
+            Acceso restringido. Si no tienes credenciales, contacta al administrador de tu organización.
+          </p>
+        </aside>
+
+        {/* Formulario */}
+        <main className="flex flex-col items-center justify-center px-5 py-10 sm:px-8 lg:px-12 lg:py-12">
+          {/* Logo móvil */}
+          <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/[0.06] shadow-lg backdrop-blur-md">
+              <img src={LOGO_SRC} alt="Logo" className="h-12 w-12 object-contain" width={48} height={48} />
             </div>
-        </div>
-
-          {/* Card: mobile-first modern look, desktop preserved with md: classes */}
-          <Card className="w-full max-w-sm p-6 sm:p-8 bg-white/95 backdrop-blur-md md:bg-white ring-0 md:ring-1 md:ring-gray-100 rounded-3xl md:rounded-2xl shadow-xl md:shadow-[0_1px_2px_rgba(16,24,40,0.04)]">
-            <div className="rounded-xl p-1 flex items-center justify-center">
-                <div className="rounded-lg bg-white p-1 flex items-center justify-center">
-                  <img src="/img/ms-icon-310x310.png" alt="Logo Venta Simplyfy" className="h-12 w-12 sm:h-36 sm:w-36 rounded-md" />
-                </div>
-              </div>
-          <div className="mb-6">
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-center">Iniciar sesión</h1>
-              <p className="mt-1 text-sm text-gray-500 text-center">Accede con tus credenciales</p>
-              <div className="mt-3 mx-auto w-60 h-0.5 bg-gradient-to-r from-blue-primary to-blue-secondary rounded-full" />
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--primary))]">
+              IJF CRM
+            </p>
           </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Correo o usuario</Label>
-              <div className="relative">
-                <div className="flex items-center h-12 bg-white border border-gray-300  rounded-xl shadow-sm transition-all duration-150">
-                  <span className="flex items-center justify-center h-full px-4 bg-transparent">
-                    <Mail className="h-7 w-7 text-gray-400 bg-transparent" />
+          <Card className="w-full max-w-[420px] border border-white/10 bg-zinc-900/75 p-7 shadow-[0_24px_80px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:p-8">
+            <div className="mb-8 text-center lg:text-left">
+              <h2 className="text-2xl font-bold tracking-tight text-white sm:text-[1.65rem]">Iniciar sesión</h2>
+              <p className="mt-2 text-sm text-zinc-400">Entra con tu correo y contraseña corporativos.</p>
+              <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-orange-300 lg:mx-0" />
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-zinc-300">
+                  Correo o usuario
+                </Label>
+                <div className="relative flex h-12 items-center overflow-hidden rounded-xl border border-white/10 bg-zinc-950/80 shadow-inner transition-[border-color,box-shadow] focus-within:border-[hsl(var(--primary)/0.5)] focus-within:ring-2 focus-within:ring-[hsl(var(--primary)/0.2)]">
+                  <span className="flex h-full items-center justify-center border-r border-white/5 bg-white/[0.03] px-3.5">
+                    <Mail className="h-5 w-5 text-zinc-500" />
                   </span>
                   <input
                     id="email"
@@ -112,21 +178,21 @@ export default function Login() {
                     autoComplete="username"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder=""
-                    className="flex-1 h-full border-none outline-none text-gray-700 placeholder-gray-400 bg-transparent w-full"
+                    className="h-full flex-1 border-0 bg-transparent px-3.5 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-0"
+                    placeholder="nombre@empresa.com"
                     required
                     disabled={isLoading}
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <div className="relative">
-                <div className="flex items-center h-12 bg-white border border-gray-300  rounded-xl shadow-sm transition-all duration-150">
-                  <span className="flex items-center justify-center h-full px-4 bg-transparent">
-                    <Lock className="h-7 w-7 text-gray-400 bg-transparent" />
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-zinc-300">
+                  Contraseña
+                </Label>
+                <div className="relative flex h-12 items-center overflow-hidden rounded-xl border border-white/10 bg-zinc-950/80 shadow-inner transition-[border-color,box-shadow] focus-within:border-[hsl(var(--primary)/0.5)] focus-within:ring-2 focus-within:ring-[hsl(var(--primary)/0.2)]">
+                  <span className="flex h-full items-center justify-center border-r border-white/5 bg-white/[0.03] px-3.5">
+                    <Lock className="h-5 w-5 text-zinc-500" />
                   </span>
                   <input
                     id="password"
@@ -134,77 +200,84 @@ export default function Login() {
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) => setCapsOn((e.getModifierState && e.getModifierState('CapsLock')) || false)}
-                    placeholder=""
-                    className="flex-1 h-full border-none outline-none text-gray-700 placeholder-gray-400 pr-12 bg-transparent w-full"
+                    onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      setCapsOn((e.getModifierState && e.getModifierState('CapsLock')) || false)
+                    }
+                    className="h-full flex-1 border-0 bg-transparent px-3.5 pr-12 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-0"
+                    placeholder="••••••••"
                     required
                     disabled={isLoading}
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-200 rounded-full p-1 transition-all duration-150"
-                    onClick={() => setShowPassword(v => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/0.3)]"
+                    onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    style={{ right: '1rem' }}
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
+                {capsOn ? (
+                  <p className="inline-flex w-fit rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-200">
+                    Bloq Mayús activado
+                  </p>
+                ) : null}
               </div>
-              {capsOn && (
-                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1 inline-flex items-center w-fit">Bloq Mayús activado</p>
-              )}
-            </div>
 
-            <Button
-                type="submit"
-                className="w-full h-12 rounded-lg bg-gradient-to-r from-blue-primary to-blue-secondary text-white shadow-md hover:opacity-95 flex items-center justify-center"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Iniciando sesión...
-                </>
-              ) : (
-                <>
-                  Ingresar
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </form>
-
-          {webauthnAvailable && (
-            <div className="mt-4 md:hidden">
               <Button
-                type="button"
-                onClick={handleWebAuthnLogin}
-                className="w-full h-12 rounded-lg bg-gradient-to-r from-[#FF7A1A] to-[#FFB047] text-white flex items-center justify-center shadow-md hover:opacity-95"
-                disabled={webauthnLoading}
+                type="submit"
+                className="h-12 w-full rounded-xl bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-4px_rgba(241,125,30,0.45)] transition-[transform,box-shadow] hover:bg-[hsl(var(--primary)/0.92)] hover:shadow-[0_12px_28px_-4px_rgba(241,125,30,0.5)] active:scale-[0.99]"
+                disabled={isLoading}
               >
-                {webauthnLoading ? (
+                {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Autenticando...
+                    Iniciando sesión…
                   </>
                 ) : (
                   <>
-                    <Fingerprint className="mr-2 h-4 w-4" />
-                    Acceso con Biometría
+                    Ingresar
+                    <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
               </Button>
-            </div>
-            
-          )}
-    
+            </form>
 
-          <div className="mt-6 text-center text-xs sm:text-sm text-gray-500">
-            <p>¿Olvidaste tu contraseña? <Link to="/forgot-password" className="text-blue-500 hover:underline">Restablecer contraseña</Link></p>
-           
-          </div>
-        </Card>
+            {webauthnAvailable ? (
+              <div className="mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleWebAuthnLogin}
+                  className="h-12 w-full rounded-xl border-white/15 bg-white/[0.04] text-zinc-200 hover:bg-white/[0.08] hover:text-white"
+                  disabled={webauthnLoading}
+                >
+                  {webauthnLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Autenticando…
+                    </>
+                  ) : (
+                    <>
+                      <Fingerprint className="mr-2 h-4 w-4" />
+                      Acceso con biometría
+                    </>
+                  )}
+                </Button>
+              </div>
+            ) : null}
+
+            <p className="mt-8 text-center text-xs leading-relaxed text-zinc-500 sm:text-sm">
+              ¿Olvidaste tu contraseña?{' '}
+              <Link
+                to="/forgot-password"
+                className="font-medium text-[hsl(var(--primary))] underline-offset-4 hover:underline"
+              >
+                Restablecer contraseña
+              </Link>
+            </p>
+          </Card>
+        </main>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-/* Modern SaaS UI/UX Theme - Inter Font + Slate/Indigo Palette */
+/* Modern SaaS UI/UX Theme - Orange brand */
 /* Geist Sans loaded via @fontsource/geist-sans in main.tsx */
 @import './styles/modern-theme.css';
 
@@ -8,97 +8,96 @@
 
 @layer base {
   :root {
-    --background: 260 33% 98%;    /* #F8F7FC - Light purple background */
-    --foreground: 260 15% 20%;    /* #333333 with a purple tint */
+    --background: 0 0% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;          /* white */
-    --card-foreground: 260 15% 20%; /* #333333 with a purple tint */
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;       /* white */
-    --popover-foreground: 260 15% 20%; /* #333333 with a purple tint */
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 255 67% 75%;     /* #9b87f5 - Primary purple */
+    --primary: 29 89% 53%;      /* #f17d1e */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --secondary: 260 27% 54%;   /* #7E69AB - Secondary purple */
+    --secondary: 26 83% 45%;
     --secondary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --muted: 260 33% 94%;       /* #E5DEFF - Soft purple */
-    --muted-foreground: 260 15% 45%; /* #737373 with a purple tint */
+    --muted: 30 33% 95%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 255 67% 75%;      /* #9b87f5 - Primary purple */
+    --accent: 29 89% 53%;       /* #f17d1e */
     --accent-foreground: 0 0% 100%; /* #FFFFFF */
 
     --destructive: 0 84.2% 60.2%; /* standard red */
     --destructive-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --border: 260 33% 88%;      /* #D9D4E8 - Light purple border */
-    --input: 260 33% 88%;       /* #D9D4E8 - Light purple input */
-    --ring: 255 67% 75%;        /* #9b87f5 - Primary purple */
+    --border: 30 20% 87%;
+    --input: 30 20% 87%;
+    --ring: 29 89% 53%;
 
     /* Gradient colors for top bar (header) - configurable via Theme Customizer */
-    --topbar-from: #0B5FFF;
-    --topbar-to: #00C7FF;
+    --topbar-from: #f17d1e;
+    --topbar-to: #ff9f4a;
 
     --radius: 0.5rem;
 
-  /* Sidebar on light theme: custom brand palette */
-  /* Fondo: #103B73, Iconos: #F2811D, Texto: blanco */
-  --sidebar-background: 213 76% 26%; /* ~#103B73 */
+  /* Sidebar on light theme: black */
+  --sidebar-background: 0 0% 0%;
   --sidebar-foreground: 0 0% 100%;   /* white text */
-  --sidebar-primary: 27 88% 53%;     /* ~#F2811D for highlights/icons */
+  --sidebar-primary: 29 89% 53%;     /* #f17d1e highlights/icons */
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 213 55% 20%;    /* slightly darker navy for active/hover */
-  --sidebar-accent-foreground: 27 88% 53%;
-  --sidebar-border: 213 40% 35%;    /* subtle border on navy */
-  --sidebar-ring: 27 88% 53%;
+  --sidebar-accent: 0 0% 10%;
+  --sidebar-accent-foreground: 29 89% 53%;
+  --sidebar-border: 0 0% 18%;
+  --sidebar-ring: 29 89% 53%;
 
   /* Chart colors for Recharts */
-  --chart-1: 255 67% 75%;      /* primary purple */
-  --chart-2: 260 27% 54%;      /* secondary purple */
-  --chart-3: 27 88% 53%;       /* orange accent */
-  --chart-4: 213 76% 26%;      /* navy */
+  --chart-1: 29 89% 53%;
+  --chart-2: 26 83% 45%;
+  --chart-3: 35 95% 55%;
+  --chart-4: 0 0% 0%;
   --chart-5: 0 84.2% 60.2%;    /* red */
   }
 
   .dark {
-    --background: 260 33% 15%;  /* #272235 - Dark purple background */
+    --background: 0 0% 8%;
     --foreground: 0 0% 100%;    /* #FFFFFF */
 
-    --card: 260 33% 20%;        /* slightly lighter than background */
+    --card: 0 0% 12%;
     --card-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --popover: 260 33% 20%;     /* slightly lighter than background */
+    --popover: 0 0% 12%;
     --popover-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --primary: 255 67% 75%;     /* #9b87f5 - Primary purple */
+    --primary: 29 89% 53%;      /* #f17d1e */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --secondary: 260 27% 54%;   /* #7E69AB - Secondary purple */
+    --secondary: 26 83% 45%;
     --secondary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --muted: 260 33% 25%;       /* slightly lighter than background */
+    --muted: 0 0% 18%;
     --muted-foreground: 0 0% 85%; /* lighter version of foreground */
 
-    --accent: 260 27% 64%;      /* #9F87C7 - Lighter purple accent */
+    --accent: 29 89% 53%;
     --accent-foreground: 0 0% 100%; /* #FFFFFF */
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 260 33% 30%;      /* #3B3252 - Darker purple border */
-    --input: 260 33% 30%;       /* #3B3252 - Darker purple input */
-    --ring: 255 67% 75%;        /* #9b87f5 - Primary purple */
+    --border: 0 0% 22%;
+    --input: 0 0% 22%;
+    --ring: 29 89% 53%;
 
     /* Dark theme: keep sidebar consistent with brand colors */
-    --sidebar-background: 213 76% 20%; /* darker navy variant */
+    --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 0 0% 100%;   /* white */
-    --sidebar-primary: 27 88% 53%;     /* orange accent */
+    --sidebar-primary: 29 89% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 213 60% 24%;
-    --sidebar-accent-foreground: 27 88% 53%;
-    --sidebar-border: 213 40% 32%;
-    --sidebar-ring: 27 88% 53%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 29 89% 53%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 29 89% 53%;
   }
 }
 

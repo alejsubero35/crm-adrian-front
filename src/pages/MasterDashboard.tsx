@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { CustomButton } from '@/components/ui/custom-button';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { useUI } from '@/contexts/UIContext';
+import { useQuery } from '@tanstack/react-query';
+import { dashboardService } from '@/services/dashboard.service';
 import {
   Users,
   Package,
@@ -12,6 +14,8 @@ import {
   TrendUp,
   Pulse,
   CurrencyDollar,
+  Wrench,
+  UserPlus,
   Eye,
   ArrowClockwise
 } from '@phosphor-icons/react';
@@ -22,48 +26,70 @@ export default function MasterDashboard() {
   const { user, isDemoMode } = useDemoAuth();
   const { isMobile, isTablet } = useUI();
 
-  // Mock data for dashboard
+  const { data: dashboardData, refetch, isFetching } = useQuery({
+    queryKey: ['dashboard-summary'],
+    queryFn: () => dashboardService.getSummary(),
+  });
+
   const stats = [
     {
       title: 'Usuarios',
-      value: '1,234',
-      change: '+12%',
+      value: String(dashboardData?.stats.total_users ?? 0),
+      change: '',
       icon: Users,
       color: 'text-[hsl(var(--chart-1))]',
       bgColor: 'bg-[hsl(var(--chart-1))]/10',
     },
     {
-      title: 'Productos',
-      value: '456',
-      change: '+8%',
+      title: 'Clientes',
+      value: String(dashboardData?.stats.total_customers ?? 0),
+      change: '',
       icon: Package,
       color: 'text-[hsl(var(--chart-2))]',
       bgColor: 'bg-[hsl(var(--chart-2))]/10',
     },
     {
-      title: 'Ventas',
-      value: '89',
-      change: '+23%',
+      title: 'Equipos Vinculados',
+      value: String(dashboardData?.stats.total_equipments_linked ?? 0),
+      change: '',
       icon: ShoppingCart,
       color: 'text-[hsl(var(--chart-3))]',
       bgColor: 'bg-[hsl(var(--chart-3))]/10',
     },
     {
       title: 'Ingresos',
-      value: '$12,345',
-      change: '+15%',
+      value: `$${Number(dashboardData?.stats.total_income ?? 0).toLocaleString()}`,
+      change: '',
       icon: CurrencyDollar,
       color: 'text-[hsl(var(--chart-4))]',
       bgColor: 'bg-[hsl(var(--chart-4))]/10',
     },
   ];
 
-  const recentActivity = [
-    { id: 1, user: 'John Doe', action: 'creó un nuevo usuario', time: 'Hace 5 minutos' },
-    { id: 2, user: 'Jane Smith', action: 'actualizó el producto #123', time: 'Hace 15 minutos' },
-    { id: 3, user: 'Bob Johnson', action: 'eliminó el pedido #456', time: 'Hace 30 minutos' },
-    { id: 4, user: 'Alice Brown', action: 'completó la venta #789', time: 'Hace 1 hora' },
-  ];
+  const formatActivityDate = (value?: string | null) => {
+    if (!value) return 'Sin fecha';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Sin fecha';
+
+    return new Intl.DateTimeFormat('es-ES', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(date);
+  };
+
+  const getActivityIcon = (type?: string) => {
+    if (type === 'maintenance') return Wrench;
+    if (type === 'equipment') return ShoppingCart;
+    if (type === 'customer') return UserPlus;
+    return Users;
+  };
+
+  const recentActivity = dashboardData?.recent_activity ?? [];
 
   const quickActions = [
     { title: 'Nuevo Usuario', icon: Users, href: '/users', color: 'bg-[hsl(var(--chart-1))]' },
@@ -115,8 +141,9 @@ export default function MasterDashboard() {
             variant="outline"
             size="sm"
             leftIcon={<ArrowClockwise className="h-4 w-4" weight="bold" />}
+            onClick={() => refetch()}
           >
-            Actualizar
+            {isFetching ? 'Actualizando...' : 'Actualizar'}
           </CustomButton>
         </div>
       </div>
@@ -136,7 +163,7 @@ export default function MasterDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">{stat.change}</span> respecto al mes pasado
+                  Datos en tiempo real desde BD
                 </p>
               </CardContent>
             </Card>
@@ -184,21 +211,33 @@ export default function MasterDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivity.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-4">
-                  <div className="rounded-full bg-muted p-2">
-                    <Users className="h-4 w-4 text-muted-foreground" weight="duotone" />
+              {recentActivity.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Aun no hay actividad reciente.
+                </p>
+              )}
+              {recentActivity.map((activity, index) => {
+                const Icon = getActivityIcon(activity.type);
+                return (
+                  <div key={`${activity.type}-${index}-${activity.created_at ?? 'na'}`} className="flex items-center space-x-4">
+                    <div className="rounded-full bg-muted p-2">
+                      <Icon className="h-4 w-4 text-muted-foreground" weight="duotone" />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium leading-none">
+                        {activity.title}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {activity.description}
+                        {activity.meta ? ` - ${activity.meta}` : ''}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatActivityDate(activity.created_at)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {activity.user} {activity.action}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {activity.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="mt-4">
               <Button variant="outline" size="sm" className="w-full">

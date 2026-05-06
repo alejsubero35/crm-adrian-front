@@ -39,6 +39,13 @@ interface LoginResponse {
   token: string;
 }
 
+const normalizeUser = (raw: unknown): User => {
+  const candidate = (raw && typeof raw === 'object' && 'data' in (raw as Record<string, unknown>))
+    ? (raw as { data: unknown }).data
+    : raw;
+  return candidate as User;
+};
+
 export const authService = {
   STORAGE_USER_KEY: 'auth_user',
   /**
@@ -67,7 +74,7 @@ export const authService = {
       console.log('Token almacenado:', apiService.loadToken());
 
       // Preferimos el usuario devuelto por login y usamos /me como respaldo
-      const user = response.user ?? await this.getCurrentUser();
+      const user = normalizeUser(response.user ?? await this.getCurrentUser());
 
       // Bloquear super-admin en hosts de tenant (login directo no permitido)
       const tenantHost = isTenantHost();
@@ -98,15 +105,15 @@ export const authService = {
       // Guardamos el usuario para disponibilidad inmediata
       try {
         localStorage.setItem(this.STORAGE_USER_KEY, JSON.stringify(user));
-        localStorage.setItem('role', JSON.stringify((user as any)?.data?.roles));
+        localStorage.setItem('role', JSON.stringify((user as any)?.roles ?? []));
       } catch (e) {
         console.warn('No se pudo guardar el usuario en localStorage', e);
       }
 
       // Obtener estado de caja para el usuario y guardarlo en localStorage
       try {
-        if (user && typeof user === 'object' && 'data' in (user as any) && (user as any).data && 'id' in (user as any).data) {
-          const userId = (user as any).data.id;
+        if (user && typeof user === 'object' && 'id' in (user as any)) {
+          const userId = (user as any).id;
           const cajaStatus = await apiService.get<{ data?: { open?: boolean; id?: number; arqueo?: { id?: number } } }>(`/caja/estado/${userId}`, true, {
             headers: {
               'Accept': 'application/json',

@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { hvacService } from '@/services/hvac.service';
 import type { QrItem } from '@/types/hvac';
 import { qrBatchSchema, type QrBatchFormData } from '@/validations/hvac.schema';
+import Can from '@/components/Can';
 
 export default function QrGeneratorPage() {
   const { toast } = useToast();
@@ -96,10 +97,12 @@ export default function QrGeneratorPage() {
             ) : null}
 
             <div className="flex gap-2">
-              <Button className="flex-1 h-12" disabled={loading} type="submit">
-                <Plus className="h-4 w-4 mr-2" />
-                {loading ? 'Generando...' : 'Generar QRs'}
-              </Button>
+              <Can check="qrs.generate">
+                <Button className="flex-1 h-12" disabled={loading} type="submit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  {loading ? 'Generando...' : 'Generar QRs'}
+                </Button>
+              </Can>
               <Button
                 type="button"
                 variant="outline"

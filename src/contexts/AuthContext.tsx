@@ -239,6 +239,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		setIsLoading(false);
 	};
 
+	const hasPermission = (permission: string): boolean => {
+		const permissions = (user?.permissions ?? []) as string[];
+		return permissions.includes(permission);
+	};
+
 	useEffect(() => {
 		if (!user) {
 			if (idleTimerRef.current) {
@@ -306,7 +311,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	}, [user, STORAGE_USER_KEY]);
 
 	return (
-		<AuthContext.Provider value={{ user, login, logout, isLoading }}>
+		<AuthContext.Provider value={{ user, login, logout, hasPermission, isLoading }}>
 			{children}
 		</AuthContext.Provider>
 	);

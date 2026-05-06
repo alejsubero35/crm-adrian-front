@@ -9,6 +9,7 @@ export interface RouteConfig {
   component: React.ComponentType;
   isPublic?: boolean;
   requiredRoles?: string[];
+  requiredPermissions?: string[];
   children?: RouteConfig[];
   showInSidebar?: boolean;
   badge?: string | number;
@@ -21,6 +22,8 @@ const ProductCRUD = React.lazy(() => import('@/pages/ProductCRUD'));
 const Reports = React.lazy(() => import('@/pages/Reports'));
 const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'));
 const NavigationSettings = React.lazy(() => import('@/pages/NavigationSettings'));
+const ThemeSettings = React.lazy(() => import('@/pages/ThemeSettings'));
+const PermissionMatrixPage = React.lazy(() => import('@/pages/PermissionMatrixPage'));
 const SalesReport = React.lazy(() => import('@/pages/reports/SalesReport'));
 const InventoryReport = React.lazy(() => import('@/pages/reports/InventoryReport'));
 const Login = React.lazy(() => import('@/features/auth/LoginPage'));
@@ -61,6 +64,7 @@ export const routeConfig: RouteConfig[] = [
     icon: Users,
     component: UserCRUD,
     requiredRoles: ['admin'],
+    requiredPermissions: ['users.view'],
     showInSidebar: true,
   },
   
@@ -86,6 +90,7 @@ export const routeConfig: RouteConfig[] = [
     label: 'Lista de Clientes',
     icon: Package,
     component: ClientesCRUD,
+    requiredPermissions: ['customers.view'],
     showInSidebar: true,
   },
   {
@@ -94,6 +99,7 @@ export const routeConfig: RouteConfig[] = [
     label: 'Etiquetas QR',
     icon: QrCode,
     component: QrGeneratorPage,
+    requiredPermissions: ['qrs.view'],
     showInSidebar: true,
   },
   {
@@ -102,6 +108,7 @@ export const routeConfig: RouteConfig[] = [
     label: 'Planes HVAC',
     icon: ClipboardList,
     component: PlanesCRUD,
+    requiredPermissions: ['plans.view'],
     showInSidebar: true,
   },
   {
@@ -110,6 +117,7 @@ export const routeConfig: RouteConfig[] = [
     label: 'Escaneo QR',
     icon: QrCode,
     component: HvacScanPage,
+    requiredPermissions: ['equipments.view'],
     showInSidebar: true,
   },
   {
@@ -163,6 +171,25 @@ export const routeConfig: RouteConfig[] = [
         label: 'Navegación Mobile',
         icon: Settings,
         component: NavigationSettings,
+        requiredPermissions: ['users.view'],
+        showInSidebar: true,
+      },
+      {
+        id: 'theme-settings',
+        path: '/settings/theme',
+        label: 'Apariencia',
+        icon: Settings,
+        component: ThemeSettings,
+        requiredPermissions: ['users.view'],
+        showInSidebar: true,
+      },
+      {
+        id: 'rbac-settings',
+        path: '/settings/permissions',
+        label: 'Permisos y Roles',
+        icon: Settings,
+        component: PermissionMatrixPage,
+        requiredPermissions: ['roles.view'],
         showInSidebar: true,
       },
     ],
@@ -213,8 +240,12 @@ export const getRouteByPath = (path: string): RouteConfig | undefined => {
   return routeConfig.find(route => route.path === path);
 };
 
-export const hasRouteAccess = (route: RouteConfig, userRoles: string[] = []): boolean => {
+export const hasRouteAccess = (route: RouteConfig, userRoles: string[] = [], userPermissions: string[] = []): boolean => {
   if (route.isPublic) return true;
+  if (userRoles.includes('admin')) return true;
+  if (route.requiredPermissions && route.requiredPermissions.length > 0) {
+    return route.requiredPermissions.every(permission => userPermissions.includes(permission));
+  }
   if (!route.requiredRoles || route.requiredRoles.length === 0) return true;
   return route.requiredRoles.some(role => userRoles.includes(role));
 };

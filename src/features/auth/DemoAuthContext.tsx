@@ -17,6 +17,7 @@ interface DemoAuthContextType {
   logout: () => Promise<void>;
   register: (name: string, email: string, password: string, passwordConfirmation: string) => Promise<void>;
   hasRole: (role: string) => boolean;
+  hasPermission: (permission: string) => boolean;
   refreshUser: () => Promise<void>;
   isDemoMode: boolean;
   toggleDemoMode: () => void;
@@ -60,6 +61,11 @@ function DemoAuthAdapterProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
+  const hasPermission = (permission: string): boolean => {
+    const permissions = ((user as User | null)?.permissions ?? []) as string[];
+    return permissions.includes(permission);
+  };
+
   const refreshUser = async (): Promise<void> => {
     return Promise.resolve();
   };
@@ -76,6 +82,7 @@ function DemoAuthAdapterProvider({ children }: { children: ReactNode }) {
     logout,
     register,
     hasRole,
+    hasPermission,
     refreshUser,
     isDemoMode: false,
     toggleDemoMode,

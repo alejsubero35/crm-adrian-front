@@ -1,12 +1,24 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
+import { Navigate, Link } from 'react-router-dom';
 import { useDemoAuth } from './DemoAuthContext';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
+import {
+  Loader2,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  QrCode,
+  Wrench,
+  Wind,
+} from 'lucide-react';
+
+const LOGO_SRC = '/img/logo_solo.png';
 
 interface LoginFormData {
   username: string;
@@ -14,8 +26,10 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
-  const { login, isLoading } = useDemoAuth();
+  const { login, isLoading, isAuthenticated } = useDemoAuth();
   const [error, setError] = React.useState<string>('');
+  const [showPassword, setShowPassword] = React.useState(false);
+  const [capsOn, setCapsOn] = React.useState(false);
 
   const {
     register,
@@ -23,95 +37,235 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginFormData>();
 
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const onSubmit = async (data: LoginFormData) => {
     setError('');
-    console.log('Iniciando login con:', data.username);
     try {
       await login(data.username, data.password);
-      console.log('Login exitoso');
-    } catch (err: any) {
-      console.error('Error en login:', err);
-      setError(err.message || 'Error al iniciar sesión');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error al iniciar sesión';
+      setError(message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">Iniciar Sesión</CardTitle>
-            <CardDescription>
-              Ingresa tus credenciales para acceder al sistema
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              {error && (
-                <Alert variant="destructive">
+    <div className="relative min-h-screen overflow-hidden bg-zinc-950 text-zinc-100">
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(241,125,30,0.22),transparent_55%)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_100%_100%,rgba(56,189,248,0.08),transparent_50%)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35] bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:72px_72px] [mask-image:radial-gradient(ellipse_80%_60%_at_50%_40%,black,transparent)]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-[hsl(var(--primary)/0.12)] blur-[100px]"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-sky-500/10 blur-[90px]"
+        aria-hidden
+      />
+
+      <div className="relative z-10 mx-auto grid min-h-screen max-w-[1400px] lg:grid-cols-[1.05fr_0.95fr]">
+        <aside className="relative hidden flex-col justify-between px-10 py-12 lg:flex xl:px-16 xl:py-14">
+          <div>
+            <div className="flex items-center gap-4">
+              <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] shadow-[0_0_0_1px_rgba(255,255,255,0.06)_inset,0_24px_48px_-12px_rgba(0,0,0,0.5)] backdrop-blur-md">
+                <img src={LOGO_SRC} alt="" className="h-10 w-10 object-contain" width={40} height={40} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[hsl(var(--primary))]">
+                  IJF CRM
+                </p>
+                <h1 className="text-2xl font-bold tracking-tight text-white xl:text-3xl">
+                  Operaciones HVAC en campo
+                </h1>
+              </div>
+            </div>
+            <p className="mt-8 max-w-md text-base leading-relaxed text-zinc-400">
+              Control de activos, mantenimiento y etiquetas QR en un solo panel. Pensado para técnicos y
+              administración con la misma claridad en móvil y escritorio.
+            </p>
+
+            <ul className="mt-10 space-y-4">
+              {[
+                {
+                  icon: QrCode,
+                  title: 'Vínculo por primer escaneo',
+                  desc: 'QR físicos, registro rápido y ficha técnica siempre a mano.',
+                },
+                {
+                  icon: Wrench,
+                  title: 'Historial de mantenimiento',
+                  desc: 'Timeline de servicios, estados y próximas visitas programadas.',
+                },
+                {
+                  icon: Wind,
+                  title: 'Listo para operar',
+                  desc: 'Flujo de acceso seguro y roles alineados a tu equipo en terreno.',
+                },
+              ].map(({ icon: Icon, title, desc }) => (
+                <li
+                  key={title}
+                  className="group flex gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.03] p-4 transition-colors hover:border-[hsl(var(--primary)/0.35)] hover:bg-white/[0.05]"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))] ring-1 ring-[hsl(var(--primary)/0.25)]">
+                    <Icon className="h-5 w-5" strokeWidth={1.75} />
+                  </span>
+                  <div>
+                    <p className="font-semibold text-white">{title}</p>
+                    <p className="mt-0.5 text-sm text-zinc-500">{desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <p className="text-xs text-zinc-600">
+            Acceso restringido. Si no tienes credenciales, contacta al administrador de tu organización.
+          </p>
+        </aside>
+
+        <main className="flex flex-col items-center justify-center px-5 py-10 sm:px-8 lg:px-12 lg:py-12">
+          <div className="mb-8 flex flex-col items-center gap-3 lg:hidden">
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl border border-white/10 bg-white/[0.06] shadow-lg backdrop-blur-md">
+              <img src={LOGO_SRC} alt="Logo" className="h-12 w-12 object-contain" width={48} height={48} />
+            </div>
+            <p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-[hsl(var(--primary))]">
+              IJF CRM
+            </p>
+          </div>
+
+          <Card className="w-full max-w-[420px] border border-white/10 bg-zinc-900/75 p-7 shadow-[0_24px_80px_-16px_rgba(0,0,0,0.65)] backdrop-blur-xl sm:p-8">
+            <div className="mb-8 text-center lg:text-left">
+              <h2 className="text-2xl font-bold tracking-tight text-white sm:text-[1.65rem]">Iniciar sesión</h2>
+              <p className="mt-2 text-sm text-zinc-400">Ingresa tu usuario o correo y contraseña.</p>
+              <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-orange-300 lg:mx-0" />
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              {error ? (
+                <Alert
+                  variant="destructive"
+                  className="border-red-500/40 bg-red-950/50 text-red-100 [&>svg]:text-red-300"
+                >
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
-              )}
+              ) : null}
 
               <div className="space-y-2">
-                <Label htmlFor="username">Usuario o Correo electrónico</Label>
-                <Input
-                  id="username"
-                  type="text"
-                  placeholder="usuario o correo@ejemplo.com"
-                  {...register('username', {
-                    required: 'El usuario o correo es requerido',
-                    validate: (value) => {
-                      // Validar si es email o username
-                      const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
-                      const isUsername = /^[a-zA-Z0-9_]{3,20}$/.test(value);
-                      return isEmail || isUsername || 'Ingresa un correo válido o un nombre de usuario';
-                    },
-                  })}
-                  disabled={isLoading}
-                />
-                {errors.username && (
-                  <p className="text-sm text-red-600">{errors.username.message}</p>
-                )}
+                <Label htmlFor="username" className="text-zinc-300">
+                  Usuario o correo electrónico
+                </Label>
+                <div className="relative flex h-12 items-center overflow-hidden rounded-xl border border-white/10 bg-zinc-950/80 shadow-inner transition-[border-color,box-shadow] focus-within:border-[hsl(var(--primary)/0.5)] focus-within:ring-2 focus-within:ring-[hsl(var(--primary)/0.2)]">
+                  <span className="flex h-full items-center justify-center border-r border-white/5 bg-white/[0.03] px-3.5">
+                    <Mail className="h-5 w-5 text-zinc-500" />
+                  </span>
+                  <input
+                    id="username"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="usuario o correo@empresa.com"
+                    disabled={isLoading}
+                    className="h-full flex-1 border-0 bg-transparent px-3.5 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-0"
+                    {...register('username', {
+                      required: 'El usuario o correo es requerido',
+                      validate: (value) => {
+                        const isEmail = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
+                        const isUsername = /^[a-zA-Z0-9_]{3,20}$/.test(value);
+                        return isEmail || isUsername || 'Ingresa un correo válido o un nombre de usuario';
+                      },
+                    })}
+                  />
+                </div>
+                {errors.username ? (
+                  <p className="text-sm text-red-400">{errors.username.message}</p>
+                ) : null}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="********"
-                  {...register('password', {
-                    required: 'La contraseña es requerida',
-                    minLength: {
-                      value: 6,
-                      message: 'La contraseña debe tener al menos 6 caracteres',
-                    },
-                  })}
-                  disabled={isLoading}
-                />
-                {errors.password && (
-                  <p className="text-sm text-red-600">{errors.password.message}</p>
-                )}
+                <Label htmlFor="password" className="text-zinc-300">
+                  Contraseña
+                </Label>
+                <div className="relative flex h-12 items-center overflow-hidden rounded-xl border border-white/10 bg-zinc-950/80 shadow-inner transition-[border-color,box-shadow] focus-within:border-[hsl(var(--primary)/0.5)] focus-within:ring-2 focus-within:ring-[hsl(var(--primary)/0.2)]">
+                  <span className="flex h-full items-center justify-center border-r border-white/5 bg-white/[0.03] px-3.5">
+                    <Lock className="h-5 w-5 text-zinc-500" />
+                  </span>
+                  <input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    placeholder="••••••••"
+                    disabled={isLoading}
+                    onKeyUp={(e: React.KeyboardEvent<HTMLInputElement>) =>
+                      setCapsOn((e.getModifierState && e.getModifierState('CapsLock')) || false)
+                    }
+                    className="h-full flex-1 border-0 bg-transparent px-3.5 pr-12 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:ring-0"
+                    {...register('password', {
+                      required: 'La contraseña es requerida',
+                      minLength: {
+                        value: 6,
+                        message: 'La contraseña debe tener al menos 6 caracteres',
+                      },
+                    })}
+                  />
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-[hsl(var(--primary))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary)/0.3)]"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                {capsOn ? (
+                  <p className="inline-flex w-fit rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs text-amber-200">
+                    Bloq Mayús activado
+                  </p>
+                ) : null}
+                {errors.password ? (
+                  <p className="text-sm text-red-400">{errors.password.message}</p>
+                ) : null}
               </div>
 
               <Button
                 type="submit"
-                className="w-full"
+                className="h-12 w-full rounded-xl bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-4px_rgba(241,125,30,0.45)] transition-[transform,box-shadow] hover:bg-[hsl(var(--primary)/0.92)] hover:shadow-[0_12px_28px_-4px_rgba(241,125,30,0.5)] active:scale-[0.99]"
                 disabled={isLoading}
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Iniciando sesión...
+                    Iniciando sesión…
                   </>
                 ) : (
-                  'Iniciar Sesión'
+                  <>
+                    Ingresar
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
                 )}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+
+            <p className="mt-8 text-center text-xs text-zinc-500 sm:text-sm">
+              ¿Problemas para entrar?{' '}
+              <Link
+                to="/forgot-password"
+                className="font-medium text-[hsl(var(--primary))] underline-offset-4 hover:underline"
+              >
+                Restablecer contraseña
+              </Link>
+            </p>
+          </Card>
+        </main>
       </div>
     </div>
   );

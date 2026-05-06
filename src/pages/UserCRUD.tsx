@@ -1,232 +1,317 @@
-import React, { useState } from 'react';
-import { GenericTable } from '@/components/tables/GenericTable';
+import React, { useMemo, useState } from 'react';
 import { GenericForm, FormFieldConfig } from '@/components/forms/GenericForm';
 import { CustomButton } from '@/components/ui/custom-button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { DataTable, type DataTableColumn } from '@/components/DataTable';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  MoreHorizontal,
-  Users,
-  Mail,
-  Calendar,
-  Shield
-} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Users, Calendar, Shield } from 'lucide-react';
+import { PencilSimple, Trash } from '@phosphor-icons/react';
 import { z } from 'zod';
+import { rbacService } from '@/services/rbac.service';
 
-// Mock data
-const mockUsers = [
-  {
-    id: 1,
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    role: 'admin',
-    status: 'active',
-    createdAt: '2024-01-15',
-    lastLogin: '2024-03-10',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    role: 'user',
-    status: 'active',
-    createdAt: '2024-02-20',
-    lastLogin: '2024-03-09',
-  },
-  {
-    id: 3,
-    name: 'Bob Johnson',
-    email: 'bob.johnson@example.com',
-    role: 'manager',
-    status: 'inactive',
-    createdAt: '2024-01-25',
-    lastLogin: '2024-02-28',
-  },
-  {
-    id: 4,
-    name: 'Alice Brown',
-    email: 'alice.brown@example.com',
-    role: 'user',
-    status: 'active',
-    createdAt: '2024-03-01',
-    lastLogin: '2024-03-10',
-  },
-  {
-    id: 5,
-    name: 'Charlie Wilson',
-    email: 'charlie.wilson@example.com',
-    role: 'user',
-    status: 'pending',
-    createdAt: '2024-03-05',
-    lastLogin: null,
-  },
-];
+type UserRow = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: 'active' | 'inactive' | 'pending';
+  createdAt: string;
+  lastLogin: string | null;
+};
 
 export default function UserCRUD() {
   const { user: currentUser, hasRole } = useDemoAuth();
-  const [users, setUsers] = useState(mockUsers);
+  const { toast } = useToast();
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<string[]>([]);
+  const [search, setSearch] = useState('');
+  const [listLoading, setListLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<typeof mockUsers[0] | null>(null);
+  const [editingUser, setEditingUser] = useState<UserRow | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Form fields configuration
-  const formFields: FormFieldConfig[] = [
-    {
-      name: 'name',
-      label: 'Nombre',
-      type: 'text',
-      placeholder: 'Ingrese el nombre completo',
-      required: true,
-      validation: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-    },
-    {
-      name: 'email',
-      label: 'Correo Electrónico',
-      type: 'email',
-      placeholder: 'correo@ejemplo.com',
-      required: true,
-      validation: z.string().email('Ingrese un correo válido'),
-    },
-    {
-      name: 'role',
-      label: 'Rol',
-      type: 'select',
-      required: true,
-      options: [
-        { value: 'user', label: 'Usuario' },
-        { value: 'manager', label: 'Manager' },
-        { value: 'admin', label: 'Administrador' },
-      ],
-      validation: z.enum(['user', 'manager', 'admin']),
-    },
-    {
-      name: 'status',
-      label: 'Estado',
-      type: 'select',
-      required: true,
-      options: [
-        { value: 'active', label: 'Activo' },
-        { value: 'inactive', label: 'Inactivo' },
-        { value: 'pending', label: 'Pendiente' },
-      ],
-      validation: z.enum(['active', 'inactive', 'pending']),
-    },
-  ];
+  const loadRoleManagerData = async () => {
+    try {
+      setListLoading(true);
+      const [usersResponse, rolePermissionResponse] = await Promise.all([
+        rbacService.getUsers(),
+        rbacService.getRolesPermissions(),
+      ]);
+      setUsers(
+        usersResponse.data.map((user) => ({
+          id: user.id,
+          name: `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim() || user.email,
+          email: user.email,
+          role: user.roles?.[0] ?? 'sin-rol',
+          status: 'active',
+          createdAt: '-',
+          lastLogin: null,
+        }))
+      );
+      setAvailableRoles(rolePermissionResponse.roles.map((role) => role.name));
+    } catch (error) {
+      console.warn('No se pudo cargar data de roles/permisos', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error cargando usuarios',
+        description: error instanceof Error ? error.message : 'No se pudo cargar la informacion de usuarios.',
+      });
+    } finally {
+      setListLoading(false);
+    }
+  };
 
-  // Table columns configuration
-  const tableColumns = [
+  React.useEffect(() => {
+    void loadRoleManagerData();
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return users;
+    return users.filter((user) =>
+      [user.name, user.email, user.role]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(term)
+    );
+  }, [users, search]);
+
+  const createFormFields: FormFieldConfig[] = useMemo(() => {
+    const roleOptions = availableRoles.map((role) => ({
+      value: role,
+      label: role,
+    }));
+    return [
+      {
+        name: 'name',
+        label: 'Nombre',
+        type: 'text',
+        placeholder: 'Ingrese el nombre completo',
+        required: true,
+        validation: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+      },
+      {
+        name: 'email',
+        label: 'Correo Electrónico',
+        type: 'email',
+        placeholder: 'correo@ejemplo.com',
+        required: true,
+        validation: z.string().email('Ingrese un correo válido'),
+      },
+      {
+        name: 'role',
+        label: 'Rol',
+        type: 'select',
+        required: true,
+        options: roleOptions,
+        validation: z.string().min(1, 'Debes seleccionar un rol'),
+      },
+      {
+        name: 'password',
+        label: 'Contraseña',
+        type: 'password',
+        placeholder: 'Minimo 8 caracteres',
+        required: true,
+        validation: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres'),
+      },
+      {
+        name: 'status',
+        label: 'Estado',
+        type: 'select',
+        required: true,
+        defaultValue: 'active',
+        options: [
+          { value: 'active', label: 'Activo' },
+          { value: 'inactive', label: 'Inactivo' },
+          { value: 'pending', label: 'Pendiente' },
+        ],
+        validation: z.enum(['active', 'inactive', 'pending']),
+      },
+    ];
+  }, [availableRoles]);
+
+  const editFormFields: FormFieldConfig[] = useMemo(() => {
+    const roleOptions = availableRoles.map((role) => ({
+      value: role,
+      label: role,
+    }));
+    return [
+      {
+        name: 'name',
+        label: 'Nombre',
+        type: 'text',
+        placeholder: 'Ingrese el nombre completo',
+        required: true,
+        validation: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+      },
+      {
+        name: 'email',
+        label: 'Correo Electrónico',
+        type: 'email',
+        placeholder: 'correo@ejemplo.com',
+        required: true,
+        validation: z.string().email('Ingrese un correo válido'),
+      },
+      {
+        name: 'role',
+        label: 'Rol',
+        type: 'select',
+        required: true,
+        options: roleOptions,
+        validation: z.string().min(1, 'Debes seleccionar un rol'),
+      },
+      {
+        name: 'password',
+        label: 'Contraseña',
+        type: 'password',
+        placeholder: 'Dejar vacio para no cambiar (minimo 8 caracteres)',
+        required: false,
+        validation: z.string().refine((val) => val.trim() === '' || val.length >= 8, {
+          message: 'La contraseña debe tener al menos 8 caracteres',
+        }),
+      },
+      {
+        name: 'status',
+        label: 'Estado',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'active', label: 'Activo' },
+          { value: 'inactive', label: 'Inactivo' },
+          { value: 'pending', label: 'Pendiente' },
+        ],
+        validation: z.enum(['active', 'inactive', 'pending']),
+      },
+    ];
+  }, [availableRoles]);
+
+  const statusBadge = (status: UserRow['status']) => {
+    const statusConfig = {
+      active: { label: 'Activo', variant: 'default' as const },
+      inactive: { label: 'Inactivo', variant: 'secondary' as const },
+      pending: { label: 'Pendiente', variant: 'outline' as const },
+    };
+    const config = statusConfig[status];
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  const columns: DataTableColumn<UserRow>[] = [
     {
-      key: 'name',
-      label: 'Nombre',
-      sortable: true,
-      render: (value: string, row: any) => (
-        <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Users className="h-4 w-4 text-primary" />
-          </div>
-          <div>
-            <div className="font-medium">{value}</div>
-            <div className="text-sm text-muted-foreground">{row.email}</div>
+      id: 'name',
+      header: 'Nombre',
+      cell: ({ item }) => (
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+              <Users className="h-4 w-4 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold truncate">{item.name}</p>
+              <p className="text-xs text-muted-foreground truncate">{item.email}</p>
+            </div>
           </div>
         </div>
       ),
     },
     {
-      key: 'role',
-      label: 'Rol',
-      sortable: true,
-      render: (value: string) => {
-        const roleConfig = {
-          admin: { label: 'Administrador', variant: 'destructive' as const },
-          manager: { label: 'Manager', variant: 'default' as const },
-          user: { label: 'Usuario', variant: 'secondary' as const },
-        };
-        
-        const config = roleConfig[value as keyof typeof roleConfig];
-        return <Badge variant={config.variant}>{config.label}</Badge>;
+      id: 'role',
+      header: 'Rol',
+      cell: ({ item }) => {
+        const variant = item.role === 'admin' ? 'destructive' : 'secondary';
+        return <Badge variant={variant}>{item.role || 'sin-rol'}</Badge>;
       },
+      hideBelow: 'md',
+      mobileLabel: 'Rol',
     },
     {
-      key: 'status',
-      label: 'Estado',
-      sortable: true,
-      render: (value: string) => {
-        const statusConfig = {
-          active: { label: 'Activo', variant: 'default' as const },
-          inactive: { label: 'Inactivo', variant: 'secondary' as const },
-          pending: { label: 'Pendiente', variant: 'outline' as const },
-        };
-        
-        const config = statusConfig[value as keyof typeof statusConfig];
-        return <Badge variant={config.variant}>{config.label}</Badge>;
-      },
+      id: 'status',
+      header: 'Estado',
+      cell: ({ item }) => statusBadge(item.status),
+      hideBelow: 'md',
+      mobileLabel: 'Estado',
     },
     {
-      key: 'createdAt',
-      label: 'Creado',
-      sortable: true,
-      render: (value: string) => (
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm">{value}</span>
+      id: 'createdAt',
+      header: 'Creado',
+      cell: ({ item }) => (
+        <div className="flex items-center gap-2 text-sm">
+          <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <span>{item.createdAt}</span>
         </div>
       ),
+      hideBelow: 'lg',
+      mobileLabel: 'Creado',
     },
     {
-      key: 'lastLogin',
-      label: 'Último Acceso',
-      sortable: true,
-      render: (value: string | null) => (
-        <div className="flex items-center gap-2">
-          {value ? (
+      id: 'lastLogin',
+      header: 'Último acceso',
+      cell: ({ item }) => (
+        <div className="flex items-center gap-2 text-sm">
+          {item.lastLogin ? (
             <>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm">{value}</span>
+              <Calendar className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <span>{item.lastLogin}</span>
             </>
           ) : (
-            <span className="text-sm text-muted-foreground">Nunca</span>
+            <span className="text-muted-foreground">Nunca</span>
           )}
         </div>
       ),
-    },
-  ];
-
-  // Table actions
-  const tableActions = [
-    {
-      key: 'view',
-      label: 'Ver',
-      icon: <Eye className="h-4 w-4" />,
-      onClick: (user: any) => {
-        console.log('View user:', user);
-      },
+      hideBelow: 'lg',
+      mobileLabel: 'Último acceso',
     },
     {
-      key: 'edit',
-      label: 'Editar',
-      icon: <Edit className="h-4 w-4" />,
-      onClick: (user: any) => {
-        setEditingUser(user);
+      id: 'actions',
+      header: 'Acciones',
+      cell: ({ item }) => {
+        const canEdit = hasRole('admin') || item.id === currentUser?.id;
+        const canDelete = hasRole('admin') && item.id !== currentUser?.id;
+        return (
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              disabled={!canEdit}
+              onClick={() => setEditingUser(item)}
+            >
+              <PencilSimple className="h-3.5 w-3.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:border-red-300"
+              disabled={!canDelete}
+              onClick={async () => {
+                if (!window.confirm(`¿Estás seguro de eliminar a ${item.name}?`)) return;
+                try {
+                  await rbacService.deleteUser(item.id);
+                  await loadRoleManagerData();
+                  toast({
+                    variant: 'success',
+                    title: 'Usuario eliminado',
+                    description: 'El usuario se elimino correctamente.',
+                  });
+                } catch (error) {
+                  toast({
+                    variant: 'destructive',
+                    title: 'No se pudo eliminar',
+                    description: error instanceof Error ? error.message : 'Error inesperado.',
+                  });
+                }
+              }}
+            >
+              <Trash className="h-3.5 w-3.5" />
+            </Button>
+          </div>
+        );
       },
-      disabled: (user: any) => !hasRole('admin') && user.id !== currentUser?.id,
-    },
-    {
-      key: 'delete',
-      label: 'Eliminar',
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: (user: any) => {
-        if (window.confirm(`¿Estás seguro de eliminar a ${user.name}?`)) {
-          setUsers(users.filter(u => u.id !== user.id));
-        }
-      },
-      variant: 'destructive' as const,
-      disabled: (user: any) => !hasRole('admin') || user.id === currentUser?.id,
     },
   ];
 
@@ -234,20 +319,26 @@ export default function UserCRUD() {
   const handleCreateUser = async (data: any) => {
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const newUser = {
-        id: users.length + 1,
-        ...data,
-        createdAt: new Date().toISOString().split('T')[0],
-        lastLogin: null,
-      };
-      
-      setUsers([...users, newUser]);
+      await rbacService.createUser({
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
+        password: data.password || undefined,
+      });
+      await loadRoleManagerData();
       setIsCreateDialogOpen(false);
+      toast({
+        variant: 'success',
+        title: 'Usuario creado',
+        description: 'El usuario se guardo correctamente.',
+      });
     } catch (error) {
-      console.error('Error creating user:', error);
+      toast({
+        variant: 'destructive',
+        title: 'No se pudo crear',
+        description: error instanceof Error ? error.message : 'Error inesperado.',
+      });
     } finally {
       setLoading(false);
     }
@@ -258,18 +349,26 @@ export default function UserCRUD() {
     
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, ...data }
-          : user
-      ));
-      
+      await rbacService.updateUser(editingUser.id, {
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        status: data.status,
+        password: data.password || undefined,
+      });
+      await loadRoleManagerData();
       setEditingUser(null);
+      toast({
+        variant: 'success',
+        title: 'Usuario actualizado',
+        description: 'Los cambios se guardaron correctamente.',
+      });
     } catch (error) {
-      console.error('Error updating user:', error);
+      toast({
+        variant: 'destructive',
+        title: 'No se pudo actualizar',
+        description: error instanceof Error ? error.message : 'Error inesperado.',
+      });
     } finally {
       setLoading(false);
     }
@@ -300,10 +399,12 @@ export default function UserCRUD() {
               </DialogDescription>
             </DialogHeader>
             <GenericForm
-              fields={formFields}
+              key="create-user"
+              fields={createFormFields}
               onSubmit={handleCreateUser}
               loading={loading}
               onCancel={() => setIsCreateDialogOpen(false)}
+              defaultValues={{ status: 'active' }}
             />
           </DialogContent>
         </Dialog>
@@ -334,7 +435,9 @@ export default function UserCRUD() {
               {users.filter(u => u.status === 'active').length}
             </div>
             <p className="text-xs text-muted-foreground">
-              {Math.round((users.filter(u => u.status === 'active').length / users.length) * 100)}% del total
+              {users.length
+                ? `${Math.round((users.filter((u) => u.status === 'active').length / users.length) * 100)}% del total`
+                : '0% del total'}
             </p>
           </CardContent>
         </Card>
@@ -370,33 +473,38 @@ export default function UserCRUD() {
         </Card>
       </div>
 
-      {/* Users Table */}
-      <GenericTable
-        data={users}
-        columns={tableColumns}
-        actions={tableActions}
-        title="Lista de Usuarios"
-        description="Todos los usuarios registrados en el sistema"
-        searchable={true}
-        selectable={true}
-        onSelectionChange={(selectedUsers) => {
-          console.log('Selected users:', selectedUsers);
-        }}
-        onRefresh={() => {
-          console.log('Refreshing users...');
-        }}
-        onExport={() => {
-          console.log('Exporting users...');
-        }}
-        emptyState={{
-          title: 'No hay usuarios',
-          description: 'No se encontraron usuarios en el sistema.',
-          action: {
-            label: 'Crear primer usuario',
-            onClick: () => setIsCreateDialogOpen(true),
-          },
-        }}
-      />
+      {/*
+      Sección retirada: "Asignación de rol de usuario" (lista con Select por fila).
+      El rol del usuario se gestiona desde el modal Editar usuario.
+      */}
+
+      <div className="space-y-3">
+        <div>
+          <h2 className="text-lg font-semibold">Lista de usuarios</h2>
+          <p className="text-sm text-muted-foreground">Todos los usuarios registrados en el sistema</p>
+        </div>
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre, correo o rol..."
+        />
+        {listLoading ? (
+          <p className="text-sm text-muted-foreground">Cargando usuarios...</p>
+        ) : filteredUsers.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {users.length === 0
+              ? 'No hay usuarios. Crea el primero con el botón Nuevo Usuario.'
+              : 'Ningún usuario coincide con la búsqueda.'}
+          </p>
+        ) : (
+          <DataTable<UserRow>
+            items={filteredUsers}
+            columns={columns}
+            rowKey={({ item }) => String(item.id)}
+            wrapInCard
+          />
+        )}
+      </div>
 
       {/* Edit Dialog */}
       <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
@@ -409,11 +517,15 @@ export default function UserCRUD() {
           </DialogHeader>
           {editingUser && (
             <GenericForm
-              fields={formFields}
+              key={editingUser.id}
+              fields={editFormFields}
               onSubmit={handleUpdateUser}
               loading={loading}
               onCancel={() => setEditingUser(null)}
-              defaultValues={editingUser}
+              defaultValues={{
+                ...editingUser,
+                password: '',
+              }}
             />
           )}
         </DialogContent>

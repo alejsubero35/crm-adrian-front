@@ -8,6 +8,7 @@ import { UIProvider } from '@/contexts/UIContext';
 import { DemoAuthProvider } from '@/features/auth/DemoAuthContext';
 import { NavigationConfigProvider } from '@/contexts/NavigationConfigContext';
 import { AppRoutes } from '@/routes/AppRoutes';
+import { applyThemeConfig, getThemeConfig } from '@/lib/themeConfig';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -21,6 +22,10 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  React.useEffect(() => {
+    applyThemeConfig(getThemeConfig());
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

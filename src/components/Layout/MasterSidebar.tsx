@@ -25,6 +25,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/useAuth';
 
 interface SidebarItem {
   id: string;
@@ -34,6 +35,7 @@ interface SidebarItem {
   badge?: string | number;
   children?: SidebarItem[];
   requiredRoles?: string[];
+  requiredPermissions?: string[];
 }
 
 interface SidebarProps {
@@ -54,8 +56,9 @@ const defaultSidebarItems: SidebarItem[] = [
     icon: Users,
     href: '/users',
     requiredRoles: ['admin'],
+    requiredPermissions: ['users.view'],
   },
-  {
+/*   {
     id: 'products',
     label: 'Productos',
     icon: Package,
@@ -66,32 +69,36 @@ const defaultSidebarItems: SidebarItem[] = [
     label: 'Lista Proveedores',
     icon: Package,
     href: '/proveedores',
-  },
+  }, */
   {
     id: 'clientes',
-    label: 'Lista de Clientes',
+    label: 'Clientes',
     icon: Package,
     href: '/clientes',
+    requiredPermissions: ['customers.view'],
   },
   {
     id: 'qrs',
     label: 'Etiquetas QR',
     icon: QrCode,
     href: '/qrs',
+    requiredPermissions: ['qrs.view'],
   },
   {
     id: 'planes',
     label: 'Planes HVAC',
     icon: ClipboardText,
     href: '/planes',
+    requiredPermissions: ['plans.view'],
   },
   {
     id: 'scan',
     label: 'Escaneo QR',
     icon: QrCode,
     href: '/scan',
+    requiredPermissions: ['equipments.view'],
   },
-  {
+ /*  {
     id: 'reports',
     label: 'Reportes',
     icon: ChartBar,
@@ -110,7 +117,7 @@ const defaultSidebarItems: SidebarItem[] = [
         href: '/reports/inventory',
       },
     ],
-  },
+  }, */
   {
     id: 'settings',
     label: 'Configuración',
@@ -118,17 +125,33 @@ const defaultSidebarItems: SidebarItem[] = [
     href: '/settings',
     requiredRoles: ['admin'],
     children: [
-      {
+ /*      {
         id: 'navigation-settings',
         label: 'Navegación Mobile',
         icon: Gear,
         href: '/settings/navigation',
+        requiredPermissions: ['users.view'],
+      }, */
+      {
+        id: 'theme-settings',
+        label: 'Apariencia',
+        icon: Gear,
+        href: '/settings/theme',
+        requiredPermissions: ['users.view'],
+      },
+      {
+        id: 'rbac-settings',
+        label: 'Permisos y Roles',
+        icon: Gear,
+        href: '/settings/permissions',
+        requiredPermissions: ['roles.view'],
       },
     ],
   },
 ];
 
 export function MasterSidebar({ className = '', items = defaultSidebarItems }: SidebarProps) {
+  const { hasPermission, user } = useAuth();
   const { 
     isSidebarOpen, 
     isSidebarCollapsed, 
@@ -140,6 +163,9 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
   
   const location = useLocation();
   const [expandedItems, setExpandedItems] = React.useState<Set<string>>(new Set());
+  const userRolesRaw = (user?.roles ?? []) as string[] | string;
+  const userRoles = Array.isArray(userRolesRaw) ? userRolesRaw : [userRolesRaw].filter(Boolean);
+  const isAdmin = userRoles.includes('admin');
 
   // Don't render on mobile when drawer is closed
   if (isMobile && !isMobileDrawerOpen) {
@@ -168,6 +194,11 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
   };
 
   const renderSidebarItem = (item: SidebarItem, level = 0) => {
+    if (!isAdmin && item.requiredPermissions && item.requiredPermissions.length > 0) {
+      const allowed = item.requiredPermissions.every((permission) => hasPermission(permission));
+      if (!allowed) return null;
+    }
+
     const Icon = item.icon;
     const isActive = item.href ? isItemActive(item.href) : false;
     const isExpanded = expandedItems.has(item.id);
@@ -278,9 +309,9 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
           {!isSidebarCollapsed && (
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg overflow-hidden shadow-glow">
-                <img src="/img/ms-icon-310x310.png" alt="Logo" className="h-full w-full object-cover" />
+                <img src="/img/logo_solo.png" alt="Logo" className="h-full w-full object-cover" />
               </div>
-              <span className="font-semibold text-sidebar-foreground">Starter Kit</span>
+              <span className="font-semibold text-sidebar-foreground">IJF CRM</span>
             </div>
           )}
           {isMobile && (

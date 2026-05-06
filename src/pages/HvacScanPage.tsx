@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/loading-spinner';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { ValidatedInput } from '@/components/ui/ValidatedInput';
 import { ValidatedTextarea } from '@/components/ui/ValidatedTextarea';
+import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { hvacService } from '@/services/hvac.service';
 import type { Customer, Plan, EquipmentDetails } from '@/types/hvac';
 import {
@@ -33,6 +34,7 @@ export default function HvacScanPage() {
   const { uuid = '' } = useParams();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { hasRole, hasPermission } = useDemoAuth();
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -44,6 +46,10 @@ export default function HvacScanPage() {
   const [isLogDetailModalOpen, setIsLogDetailModalOpen] = useState(false);
   const [selectedLogIndex, setSelectedLogIndex] = useState<number | null>(null);
   const [manualUuid, setManualUuid] = useState('');
+  const canManageEquipment = hasRole('admin') || hasRole('tecnico') || hasRole('técnico') || hasPermission('equipments.create');
+  const canCreateMaintenance =
+    hasRole('admin') || hasRole('tecnico') || hasRole('técnico') || hasPermission('maintenance.create');
+  const isClientRole = hasRole('cliente') || hasRole('client');
 
   const registerForm = useForm<RegisterEquipmentFormData>({
     resolver: zodResolver(registerEquipmentSchema),
@@ -231,6 +237,23 @@ export default function HvacScanPage() {
     return `${day}-${month}-${year}`;
   };
 
+  const formatDateTime = (value?: string | null) => {
+    if (!value) return 'No definido';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'No definido';
+
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear());
+
+    const hours24 = date.getHours();
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const period = hours24 >= 12 ? 'pm' : 'am';
+    const hours12 = hours24 % 12 || 12;
+
+    return `${day}-${month}-${year} ${hours12}:${minutes} ${period}`;
+  };
+
   return (
     <div className="space-y-4 pb-24 md:pb-6">
       <div className="flex items-start justify-between gap-3">
@@ -238,17 +261,18 @@ export default function HvacScanPage() {
           <h1 className="text-2xl font-bold">Escaneo QR HVAC</h1>
           <p className="text-sm text-muted-foreground">UUID: {uuid}</p>
         </div>
-        <div className="hidden md:block">
-          {isAvailable ? (
+        <div className="hidden md:flex md:flex-col md:items-end md:gap-2">
+          {isAvailable && canManageEquipment ? (
             <Button onClick={registerForm.handleSubmit(handleRegister)} disabled={registering}>
               {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
             </Button>
-          ) : (
+          ) : !isAvailable && canCreateMaintenance ? (
             <Button onClick={() => setIsLogModalOpen(true)}>
               <Wrench className="h-4 w-4 mr-2" />
               Registrar nuevo servicio
             </Button>
-          )}
+          ) : null}
+          {!isAvailable && isClientRole ? <Badge variant="secondary">Vista cliente</Badge> : null}
         </div>
       </div>
 
@@ -282,7 +306,7 @@ export default function HvacScanPage() {
         </Card>
       ) : null}
 
-      {!loading && isAvailable ? (
+      {!loading && isAvailable && canManageEquipment ? (
         <Card>
           <CardHeader>
             <CardTitle>Vincular equipo en primer escaneo</CardTitle>
@@ -350,6 +374,17 @@ export default function HvacScanPage() {
             </form>
           </CardContent>
         </Card>
+      ) : !loading && isAvailable ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Equipo pendiente de vinculacion</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Este QR esta disponible pero no ha sido vinculado aun. Contacta a un tecnico para registrar el equipo.
+            </p>
+          </CardContent>
+        </Card>
       ) : !loading && scanData ? (
         <>
           <Card>
@@ -385,7 +420,7 @@ export default function HvacScanPage() {
                         <span className="absolute left-0 top-2 h-2 w-2 rounded-full bg-primary" />
                         <div className="rounded-lg border p-3">
                           <p className="font-medium">{log.service_type}</p>
-                          <p className="text-xs text-muted-foreground">{log.created_at || 'Sin fecha'}</p>
+                          <p className="text-xs text-muted-foreground">{formatDateTime(log.created_at)}</p>
                           {log.description ? <p className="text-sm mt-1">{log.description}</p> : null}
                           {log.technician?.name ? (
                             <p className="text-xs text-muted-foreground mt-2">Tecnico: {log.technician.name}</p>
@@ -418,16 +453,16 @@ export default function HvacScanPage() {
       ) : null}
 
       <div className="fixed bottom-24 left-0 right-0 px-4 z-20 md:hidden">
-        {isAvailable ? (
+        {isAvailable && canManageEquipment ? (
           <Button className="w-full h-12" onClick={registerForm.handleSubmit(handleRegister)} disabled={registering}>
             {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
           </Button>
-        ) : (
+        ) : !isAvailable && canCreateMaintenance ? (
           <Button className="w-full h-12" onClick={() => setIsLogModalOpen(true)}>
             <Wrench className="h-4 w-4 mr-2" />
             Registrar nuevo servicio
           </Button>
-        )}
+        ) : null}
       </div>
 
       <EditModal
@@ -462,7 +497,7 @@ export default function HvacScanPage() {
         {selectedLog ? (
           <div className="space-y-3 text-sm">
             <p><span className="font-medium">Tipo de servicio:</span> {selectedLog.service_type}</p>
-            <p><span className="font-medium">Fecha:</span> {formatDate(selectedLog.created_at)}</p>
+            <p><span className="font-medium">Fecha y hora:</span> {formatDateTime(selectedLog.created_at)}</p>
             <p><span className="font-medium">Tecnico:</span> {selectedLog.technician?.name || 'No asignado'}</p>
             <p><span className="font-medium">Correo tecnico:</span> {selectedLog.technician?.email || 'No disponible'}</p>
             <p><span className="font-medium">Descripcion:</span> {selectedLog.description || 'Sin descripcion'}</p>
