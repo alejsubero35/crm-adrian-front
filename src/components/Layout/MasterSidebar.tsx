@@ -93,6 +93,13 @@ const defaultSidebarItems: SidebarItem[] = [
     requiredRoles: ['admin'],
   },
   {
+    id: 'subscriptions',
+    label: 'Suscriptores',
+    icon: FileText,
+    href: '/subscriptions',
+    requiredRoles: ['admin'],
+  },
+  {
     id: 'scan',
     label: 'Escaneo QR',
     icon: QrCode,

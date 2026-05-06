@@ -8,6 +8,8 @@ import type {
   CreateMaintenanceLogPayload,
   QrBatch,
   QrItem,
+  Subscription,
+  SubscriptionPayment,
 } from '@/types/hvac';
 
 type PaginatedResponse<T> = {
@@ -98,6 +100,33 @@ export const hvacService = {
 
   async markBatchPrinted(batchId: number) {
     return http.put<{ message: string; batch?: QrBatch }>(`/qr-batches/${batchId}/printed`, {});
+  },
+
+  async getSubscriptions(params?: { status?: string; plan_id?: number; q?: string }) {
+    const search = new URLSearchParams();
+    if (params?.status) search.set('status', params.status);
+    if (params?.plan_id) search.set('plan_id', String(params.plan_id));
+    if (params?.q) search.set('q', params.q);
+    const query = search.toString();
+    const response = await http.get<Subscription[] | PaginatedResponse<Subscription>>(`/subscriptions${query ? `?${query}` : ''}`);
+    return unwrapList(response);
+  },
+
+  async createSubscription(payload: {
+    customer_id: number;
+    plan_id: number;
+    equipment_id?: number;
+    amount: number;
+    billing_cycle_days?: number;
+    start_date?: string;
+    next_due_date?: string;
+    notes?: string;
+  }) {
+    return http.post<{ message: string; data: Subscription }>('/subscriptions', payload);
+  },
+
+  async registerSubscriptionPayment(subscriptionId: number, payload: SubscriptionPayment & { notes?: string }) {
+    return http.post<{ message: string; data: Subscription }>(`/subscriptions/${subscriptionId}/payments`, payload);
   },
 
   async generateQrs(quantity: number) {

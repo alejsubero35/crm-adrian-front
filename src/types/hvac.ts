@@ -99,3 +99,43 @@ export type QrBatch = {
   first_qr_uuid?: string | null;
   last_qr_uuid?: string | null;
 };
+
+export type SubscriptionPayment = {
+  id?: number;
+  amount: number;
+  paid_at: string;
+  method?: string | null;
+  reference?: string | null;
+};
+
+export type Subscription = {
+  id: number;
+  status: 'active' | 'suspended' | 'cancelled' | string;
+  payment_status: 'al_dia' | 'por_vencer' | 'vencido' | 'inactiva' | string;
+  days_to_due?: number | null;
+  days_overdue?: number;
+  amount: number;
+  billing_cycle_days: number;
+  start_date?: string | null;
+  next_due_date?: string | null;
+  notes?: string | null;
+  customer?: {
+    id?: number;
+    name?: string;
+    email?: string | null;
+    phone?: string | null;
+  };
+  plan?: {
+    id?: number;
+    name?: string;
+    maintenance_frequency_days?: number;
+  };
+  equipment?: {
+    id?: number;
+    serial_number?: string | null;
+    brand?: string | null;
+    model?: string | null;
+  };
+  last_payment?: SubscriptionPayment | null;
+  created_at?: string | null;
+};

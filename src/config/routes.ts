@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, Settings, FileText, BarChart3, Package, QrCode, ClipboardList, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, FileText, BarChart3, Package, QrCode, ClipboardList, UserCircle, BadgeDollarSign } from 'lucide-react';
 
 export interface RouteConfig {
   id: string;
@@ -30,6 +30,7 @@ const InventoryReport = React.lazy(() => import('@/pages/reports/InventoryReport
 const Login = React.lazy(() => import('@/features/auth/LoginPage'));
 const ClientesCRUD = React.lazy(() => import('@/pages/ClientesCRUD'));
 const PlanesCRUD = React.lazy(() => import('@/pages/PlanesCRUD'));
+const SubscriptionsPage = React.lazy(() => import('@/pages/SubscriptionsPage'));
 const HvacScanPage = React.lazy(() => import('@/pages/HvacScanPage'));
 const QrGeneratorPage = React.lazy(() => import('@/pages/QrGeneratorPage'));
 const ProveedoresCRUD = React.lazy(() => import('@/pages/ProveedoresCRUD'));
@@ -118,6 +119,15 @@ export const routeConfig: RouteConfig[] = [
     label: 'Planes HVAC',
     icon: ClipboardList,
     component: PlanesCRUD,
+    requiredRoles: ['admin'],
+    showInSidebar: true,
+  },
+  {
+    id: 'subscriptions',
+    path: '/subscriptions',
+    label: 'Suscriptores',
+    icon: BadgeDollarSign,
+    component: SubscriptionsPage,
     requiredRoles: ['admin'],
     showInSidebar: true,
   },
