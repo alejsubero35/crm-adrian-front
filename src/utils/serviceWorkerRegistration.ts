@@ -3,8 +3,11 @@ import { Workbox } from 'workbox-window';
 
 export function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
-    // Register under /app/ to avoid redirects and match deployed base
-    const wb = new Workbox('/app/sw.js', { scope: '/app/' });
+    const baseUrl = import.meta.env.BASE_URL || '/';
+    const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+    const swUrl = `${normalizedBase}sw.js`;
+
+    const wb = new Workbox(swUrl, { scope: normalizedBase });
 
     wb.addEventListener('installed', (event) => {
       if (event.isUpdate) {

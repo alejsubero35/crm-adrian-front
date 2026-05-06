@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, Settings, FileText, BarChart3, Package, QrCode, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Users, Settings, FileText, BarChart3, Package, QrCode, ClipboardList, UserCircle } from 'lucide-react';
 
 export interface RouteConfig {
   id: string;
@@ -17,6 +17,7 @@ export interface RouteConfig {
 
 // Import components dynamically (lazy loading)
 const MasterDashboard = React.lazy(() => import('@/pages/MasterDashboard'));
+const ProfilePage = React.lazy(() => import('@/pages/ProfilePage'));
 const UserCRUD = React.lazy(() => import('@/pages/UserCRUD'));
 const ProductCRUD = React.lazy(() => import('@/pages/ProductCRUD'));
 const Reports = React.lazy(() => import('@/pages/Reports'));
@@ -55,6 +56,15 @@ export const routeConfig: RouteConfig[] = [
     icon: LayoutDashboard,
     component: MasterDashboard,
     showInSidebar: true,
+  },
+
+  {
+    id: 'profile',
+    path: '/profile',
+    label: 'Mi perfil',
+    icon: UserCircle,
+    component: ProfilePage,
+    showInSidebar: false,
   },
   
   {
@@ -99,7 +109,7 @@ export const routeConfig: RouteConfig[] = [
     label: 'Etiquetas QR',
     icon: QrCode,
     component: QrGeneratorPage,
-    requiredPermissions: ['qrs.view'],
+    requiredRoles: ['admin'],
     showInSidebar: true,
   },
   {
@@ -108,7 +118,7 @@ export const routeConfig: RouteConfig[] = [
     label: 'Planes HVAC',
     icon: ClipboardList,
     component: PlanesCRUD,
-    requiredPermissions: ['plans.view'],
+    requiredRoles: ['admin'],
     showInSidebar: true,
   },
   {

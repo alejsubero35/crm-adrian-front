@@ -10,7 +10,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => ({
   // In development we use relative base for Vite dev server.
   // In production we deploy under Laravel public/app, so use absolute base "/app/".
-  base: './',
+  base: '/app/',
   
   server: {
     host: true,
@@ -37,55 +37,34 @@ export default defineConfig(({ mode }) => ({
       injectManifest: {
         swSrc: 'public/sw.js',
         swDest: 'dist/sw.js',
-        injectionPoint: undefined
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['img/favicon.ico', 'img/logo_solo.png', 'offline.html'],
       manifest: {
-        name: 'Venta Simplify',
-        short_name: 'VentaApp',
-        description: 'Sistema de Punto de Venta',
-        theme_color: '#f8e109',
-        background_color: '#d5d2b4',
+        name: 'IJF CRM',
+        short_name: 'IJF CRM',
+        description: 'Sistema CRM y Punto de Venta',
+        start_url: '/app/',
+        scope: '/app/',
+        theme_color: '#FF7A1A',
+        background_color: '#FFFFFF',
         display: 'standalone',
+        orientation: 'portrait',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'img/logo_solo.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'img/logo_solo.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'img/logo_solo.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable'
-          }
-        ]
-      },
-      workbox: {
-        runtimeCaching: [
-          {
-            urlPattern: /^https:\/\/api\.example\.com\/.*$/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'api-cache',
-              expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 1 week
-              },
-              networkTimeoutSeconds: 10
-            }
-          },
-          {
-            urlPattern: /\.(js|css|png|jpg|jpeg|svg|ico)$/,
-            handler: 'StaleWhileRevalidate',
-            options: {
-              cacheName: 'assets-cache',
-            }
           }
         ]
       }

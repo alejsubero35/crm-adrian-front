@@ -75,6 +75,7 @@ const defaultSidebarItems: SidebarItem[] = [
     label: 'Clientes',
     icon: Package,
     href: '/clientes',
+    requiredRoles: ['admin','tecnico'],
     requiredPermissions: ['customers.view'],
   },
   {
@@ -82,14 +83,14 @@ const defaultSidebarItems: SidebarItem[] = [
     label: 'Etiquetas QR',
     icon: QrCode,
     href: '/qrs',
-    requiredPermissions: ['qrs.view'],
+    requiredRoles: ['admin'],
   },
   {
     id: 'planes',
     label: 'Planes HVAC',
     icon: ClipboardText,
     href: '/planes',
-    requiredPermissions: ['plans.view'],
+    requiredRoles: ['admin'],
   },
   {
     id: 'scan',
@@ -194,6 +195,12 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
   };
 
   const renderSidebarItem = (item: SidebarItem, level = 0) => {
+    const passesRequiredRoles =
+      !item.requiredRoles?.length ||
+      isAdmin ||
+      item.requiredRoles.some((role) => userRoles.includes(role));
+    if (!passesRequiredRoles) return null;
+
     if (!isAdmin && item.requiredPermissions && item.requiredPermissions.length > 0) {
       const allowed = item.requiredPermissions.every((permission) => hasPermission(permission));
       if (!allowed) return null;

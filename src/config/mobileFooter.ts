@@ -4,6 +4,8 @@ export interface MobileFooterItem {
   icon: string;
   href: string;
   isCenter?: boolean;
+  /** Si se define, solo usuarios con alguno de estos roles ven el ítem (el rol `admin` siempre pasa en el filtro del nav). */
+  requiredRoles?: string[];
 }
 
 // Las opciones visibles en el footer móvil se controlan únicamente aquí.
@@ -32,11 +34,13 @@ export const MOBILE_FOOTER_ITEMS: MobileFooterItem[] = [
     label: 'Etiquetas',
     icon: 'QrCode',
     href: '/qrs',
+    requiredRoles: ['admin'],
   },
   {
     id: 'planes',
     label: 'Planes',
     icon: 'ClipboardText',
     href: '/planes',
+    requiredRoles: ['admin'],
   },
 ];

@@ -3,15 +3,23 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { AVAILABLE_ICONS } from '@/contexts/NavigationConfigContext';
 import { MOBILE_FOOTER_ITEMS } from '@/config/mobileFooter';
+import { useAuth } from '@/contexts/useAuth';
 
 export function MobileBottomNav() {
   const location = useLocation();
+  const { user } = useAuth();
+  const userRolesRaw = (user?.roles ?? []) as string[] | string;
+  const userRoles = Array.isArray(userRolesRaw) ? userRolesRaw : [userRolesRaw].filter(Boolean);
+  const isAdmin = userRoles.includes('admin');
 
   const isActive = (href: string) => {
     return location.pathname === href || location.pathname.startsWith(href + '/');
   };
 
-  const navItems = MOBILE_FOOTER_ITEMS;
+  const navItems = MOBILE_FOOTER_ITEMS.filter((item) => {
+    if (!item.requiredRoles?.length) return true;
+    return isAdmin || item.requiredRoles.some((role) => userRoles.includes(role));
+  });
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">

@@ -2,11 +2,12 @@ import { createContext } from 'react';
 
 export interface User {
   id: string | number;
-  username: string;
+  username?: string;
   email: string;
   name?: string;
   first_name?: string;
   last_name?: string;
+  phone?: string | null;
   roles?: string[] | string;
   permissions?: string[];
   plan?: string;

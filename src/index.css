@@ -1,5 +1,5 @@
 /* Modern SaaS UI/UX Theme - Orange brand */
-/* Geist Sans loaded via @fontsource/geist-sans in main.tsx */
+/* Nunito loaded via @fontsource/nunito in main.tsx */
 @import './styles/modern-theme.css';
 
 @tailwind base;

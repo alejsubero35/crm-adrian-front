@@ -164,6 +164,17 @@ export const authService = {
     });
   },
 
+  async updatePassword(payload: {
+    current_password: string;
+    password: string;
+    password_confirmation: string;
+  }): Promise<{ message: string }> {
+    return apiService.put<
+      { current_password: string; password: string; password_confirmation: string },
+      { message: string }
+    >('/profile/password', payload);
+  },
+
   /**
    * Obtener el usuario actual
    */

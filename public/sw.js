@@ -92,7 +92,7 @@ self.addEventListener('push', (event) => {
 
   event.waitUntil(
     self.registration.showNotification(
-      data.title || 'Venta Simplify', 
+      data.title || 'IJF CRM',
       options
     )
   );

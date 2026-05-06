@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapPin, Wrench } from 'lucide-react';
+import { Camera, MapPin, Wrench } from 'lucide-react';
+import QrScanner from 'qr-scanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,10 +47,17 @@ export default function HvacScanPage() {
   const [isLogDetailModalOpen, setIsLogDetailModalOpen] = useState(false);
   const [selectedLogIndex, setSelectedLogIndex] = useState<number | null>(null);
   const [manualUuid, setManualUuid] = useState('');
+  const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [isScannerLoading, setIsScannerLoading] = useState(false);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const videoRef = React.useRef<HTMLVideoElement | null>(null);
+  const scannerRef = React.useRef<QrScanner | null>(null);
   const canManageEquipment = hasRole('admin') || hasRole('tecnico') || hasRole('técnico') || hasPermission('equipments.create');
   const canCreateMaintenance =
     hasRole('admin') || hasRole('tecnico') || hasRole('técnico') || hasPermission('maintenance.create');
   const isClientRole = hasRole('cliente') || hasRole('client');
+  const showMobileScanner = !uuid && isMobileViewport;
+  const canShowManualInput = !uuid && !isMobileViewport;
 
   const registerForm = useForm<RegisterEquipmentFormData>({
     resolver: zodResolver(registerEquipmentSchema),
@@ -114,6 +122,89 @@ export default function HvacScanPage() {
     void fetchScan();
     void loadFormData();
   }, [uuid]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const mediaQuery = window.matchMedia('(max-width: 767px)');
+    const syncMobileState = () => setIsMobileViewport(mediaQuery.matches);
+    syncMobileState();
+
+    const listener = (event: MediaQueryListEvent) => setIsMobileViewport(event.matches);
+    if (typeof mediaQuery.addEventListener === 'function') {
+      mediaQuery.addEventListener('change', listener);
+      return () => mediaQuery.removeEventListener('change', listener);
+    }
+
+    mediaQuery.addListener(listener);
+    return () => mediaQuery.removeListener(listener);
+  }, []);
+
+  useEffect(() => {
+    if (!showMobileScanner) return;
+
+    const tryExtractUuid = (value: string): string | null => {
+      const trimmed = value.trim();
+      if (!trimmed) return null;
+
+      const routeMatch = trimmed.match(/\/scan\/([^/?#]+)/i);
+      if (routeMatch?.[1]) return routeMatch[1];
+
+      const uuidLike = trimmed.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
+      if (uuidLike?.[0]) return uuidLike[0];
+
+      return trimmed;
+    };
+
+    const startScanner = async () => {
+      const videoEl = videoRef.current;
+      if (!videoEl) {
+        setScannerError('No se pudo inicializar la vista de cámara.');
+        return;
+      }
+
+      try {
+        setScannerError(null);
+        setIsScannerLoading(true);
+        const scanner = new QrScanner(
+          videoEl,
+          (result) => {
+            const rawValue = typeof result === 'string' ? result : result.data;
+            const nextUuid = tryExtractUuid(rawValue);
+            if (nextUuid) {
+              void scanner.stop();
+              navigate(`/scan/${nextUuid}`);
+            }
+          },
+          {
+            preferredCamera: 'environment',
+            returnDetailedScanResult: true,
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            maxScansPerSecond: 8,
+          }
+        );
+
+        scannerRef.current = scanner;
+        await scanner.start();
+      } catch (error) {
+        setScannerError(error instanceof Error ? error.message : 'No se pudo abrir la cámara.');
+      } finally {
+        setIsScannerLoading(false);
+      }
+    };
+
+    void startScanner();
+
+    return () => {
+      const scanner = scannerRef.current;
+      scannerRef.current = null;
+      if (scanner) {
+        void scanner.stop();
+        scanner.destroy();
+      }
+    };
+  }, [showMobileScanner, navigate]);
 
   const handleManualScan = () => {
     const nextUuid = manualUuid.trim();
@@ -276,7 +367,34 @@ export default function HvacScanPage() {
         </div>
       </div>
 
-      {!uuid ? (
+      {showMobileScanner ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              Escanear QR
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="overflow-hidden rounded-xl border bg-black">
+              <video
+                ref={videoRef}
+                className="h-[320px] w-full object-cover"
+                playsInline
+                muted
+                autoPlay
+              />
+            </div>
+            {isScannerLoading ? <p className="text-sm text-muted-foreground">Iniciando cámara…</p> : null}
+            {scannerError ? <p className="text-sm text-destructive">{scannerError}</p> : null}
+            {!isScannerLoading && !scannerError ? (
+              <p className="text-sm text-muted-foreground">Apunta la cámara al código QR para consultar automáticamente.</p>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {canShowManualInput ? (
         <Card>
           <CardHeader>
             <CardTitle>Ingresar QR manualmente</CardTitle>

@@ -22,7 +22,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: [
-					"Geist Sans",
+					"Nunito",
 					"ui-sans-serif",
 					"system-ui",
 					"-apple-system",
