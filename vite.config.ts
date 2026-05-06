@@ -7,10 +7,13 @@ import { componentTagger } from "lovable-tagger";
 import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  // In development we use relative base for Vite dev server.
-  // In production we deploy under Laravel public/app, so use absolute base "/app/".
-  base: '/app/',
+export default defineConfig(({ mode }) => {
+  const isProd = mode === 'production';
+  // Dev: raíz (http://localhost:8080/login). Producción: Laravel public/app.
+  const publicBase = isProd ? '/app/' : '/';
+
+  return {
+  base: publicBase,
   
   server: {
     host: true,
@@ -43,8 +46,8 @@ export default defineConfig(({ mode }) => ({
         name: 'IJF CRM',
         short_name: 'IJF CRM',
         description: 'Sistema CRM y Punto de Venta',
-        start_url: '/app/',
-        scope: '/app/',
+        start_url: publicBase,
+        scope: publicBase,
         theme_color: '#FF7A1A',
         background_color: '#FFFFFF',
         display: 'standalone',
@@ -76,4 +79,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(process.cwd(), "./src"),
     },
   },
-}));
+};
+});

@@ -10,6 +10,10 @@ import { NavigationConfigProvider } from '@/contexts/NavigationConfigContext';
 import { AppRoutes } from '@/routes/AppRoutes';
 import { applyThemeConfig, getThemeConfig } from '@/lib/themeConfig';
 
+// Debe coincidir con import.meta.env.BASE_URL (dev: /, prod build: /app/)
+const routerBasename =
+  import.meta.env.BASE_URL.replace(/\/$/, '') || undefined;
+
 // Create a client for React Query
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,7 +33,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <BrowserRouter>
+        <BrowserRouter basename={routerBasename}>
           <UIProvider>
             <NavigationConfigProvider>
               <DemoAuthProvider>
