@@ -6,7 +6,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === 'production';
-  const publicBase = isProd ? '/app/' : '/';
+  const publicBase = '/'; // Cambiado a '/' para evitar problemas de PWA en producción
 
   return {
     base: publicBase,
