@@ -3,7 +3,12 @@ const API_BASE_STORAGE_KEY = 'api_base_url';
 
 const normalizeBaseUrl = (value: string): string => value.replace(/\/+$/, '');
 
-const getEnvApiBase = (): string => import.meta.env.VITE_API_URL || 'http://api-crm-adrian.test/api';
+const getEnvApiBase = (): string => {
+  return import.meta.env.VITE_API_BASE_URL
+    || import.meta.env.VITE_API_URL
+    || import.meta.env.VITE_API_BASE_CENTRAL
+    || 'http://api-crm-adrian.test/api';
+};
 
 let apiBaseOverride: string | null = null;
 
