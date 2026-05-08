@@ -7,14 +7,18 @@ export function registerServiceWorker() {
     const normalizedBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
     const swUrl = `${normalizedBase}sw.js`;
 
-    const wb = new Workbox(swUrl, { scope: normalizedBase });
+    const wb = new Workbox(swUrl, {
+      scope: normalizedBase,
+      updateViaCache: 'none',
+    });
+
+    // If a new SW is waiting, activate it immediately.
+    wb.addEventListener('waiting', () => {
+      wb.messageSkipWaiting();
+    });
 
     wb.addEventListener('installed', (event) => {
-      if (event.isUpdate) {
-        if (confirm('Nueva versión disponible. ¿Recargar?')) {
-          window.location.reload();
-        }
-      } else {
+      if (!event.isUpdate) {
         console.log('La aplicación está lista para su uso offline');
       }
     });
@@ -30,7 +34,7 @@ export function registerServiceWorker() {
     });
 
     // Register the service worker
-    wb.register().catch(err => {
+    wb.register({ immediate: true }).catch(err => {
       console.error('Error al registrar el service worker:', err);
     });
   }
