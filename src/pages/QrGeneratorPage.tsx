@@ -312,43 +312,43 @@ export default function QrGeneratorPage() {
               <p className="text-xs text-red-500">{form.formState.errors.quantity.message}</p>
             ) : null}
 
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Can check="qrs.generate">
-                <Button className="flex-1 h-12" disabled={loading} type="submit">
-                  <Plus className="h-4 w-4 mr-2" />
+                <Button className="h-12 w-full min-w-0 sm:flex-1" disabled={loading} type="submit">
+                  <Plus className="h-4 w-4 shrink-0" />
                   {loading ? 'Generando...' : 'Generar QRs'}
                 </Button>
               </Can>
               <Button
                 type="button"
                 variant="outline"
-                className="h-12 px-5"
+                className="h-12 w-full shrink-0 px-5 sm:w-auto"
                 onClick={() => window.print()}
                 disabled={!generatedCount}
               >
-                <Printer className="h-4 w-4 mr-2" />
+                <Printer className="h-4 w-4 shrink-0" />
                 Imprimir
               </Button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 flex-1"
+                className="h-auto min-h-11 w-full min-w-0 flex-1 whitespace-normal px-3 py-2.5 !inline-flex items-start justify-start gap-2 text-left sm:items-center sm:justify-center sm:text-center"
                 onClick={downloadLabelsHtml}
                 disabled={!generatedCount}
               >
-                <Download className="h-4 w-4 mr-2" />
-                Descargar para imprenta (.html)
+                <Download className="mt-0.5 h-4 w-4 shrink-0 sm:mt-0" />
+                <span className="min-w-0 flex-1 leading-snug">Descargar para imprenta (.html)</span>
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                className="h-11 flex-1"
+                className="h-11 w-full min-w-0 shrink-0 sm:flex-1"
                 onClick={downloadQrCsv}
                 disabled={!generatedCount}
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Download className="h-4 w-4 shrink-0" />
                 Descargar CSV
               </Button>
             </div>
