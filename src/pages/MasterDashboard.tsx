@@ -31,42 +31,38 @@ export default function MasterDashboard() {
     queryFn: () => dashboardService.getSummary(),
   });
 
+  /* KPI: mismas clases que antes (gradiente + borde + burbuja de icono); solo se reemplaza hsl(var(--chart-N)) por #0303b5 */
+  const kpiChartClasses = {
+    iconColor: 'text-[#0303b5]',
+    iconBg: 'bg-[#0303b5]/15',
+    cardTint: 'from-[#0303b5]/20 via-[#0303b5]/5 to-transparent',
+    borderTint: 'border-[#0303b5]/30',
+  };
+
   const stats = [
     {
       title: 'Usuarios',
       value: String(dashboardData?.stats.total_users ?? 0),
       icon: Users,
-      iconColor: 'text-[hsl(var(--chart-1))]',
-      iconBg: 'bg-[hsl(var(--chart-1))]/15',
-      cardTint: 'from-[hsl(var(--chart-1))]/20 via-[hsl(var(--chart-1))]/5 to-transparent',
-      borderTint: 'border-[hsl(var(--chart-1))]/30',
+      ...kpiChartClasses,
     },
     {
       title: 'Clientes',
       value: String(dashboardData?.stats.total_customers ?? 0),
       icon: Package,
-      iconColor: 'text-[hsl(var(--chart-2))]',
-      iconBg: 'bg-[hsl(var(--chart-2))]/15',
-      cardTint: 'from-[hsl(var(--chart-2))]/20 via-[hsl(var(--chart-2))]/5 to-transparent',
-      borderTint: 'border-[hsl(var(--chart-2))]/30',
+      ...kpiChartClasses,
     },
     {
       title: 'Equipos Vinculados',
       value: String(dashboardData?.stats.total_equipments_linked ?? 0),
       icon: ShoppingCart,
-      iconColor: 'text-[hsl(var(--chart-3))]',
-      iconBg: 'bg-[hsl(var(--chart-3))]/15',
-      cardTint: 'from-[hsl(var(--chart-3))]/20 via-[hsl(var(--chart-3))]/5 to-transparent',
-      borderTint: 'border-[hsl(var(--chart-3))]/30',
+      ...kpiChartClasses,
     },
     {
       title: 'Ingresos',
       value: `$${Number(dashboardData?.stats.total_income ?? 0).toLocaleString()}`,
       icon: CurrencyDollar,
-      iconColor: 'text-[hsl(var(--chart-4))]',
-      iconBg: 'bg-[hsl(var(--chart-4))]/15',
-      cardTint: 'from-[hsl(var(--chart-4))]/20 via-[hsl(var(--chart-4))]/5 to-transparent',
-      borderTint: 'border-[hsl(var(--chart-4))]/30',
+      ...kpiChartClasses,
     },
   ];
 
@@ -96,10 +92,10 @@ export default function MasterDashboard() {
   const recentActivity = dashboardData?.recent_activity ?? [];
 
   const quickActions = [
-    { title: 'Nuevo Usuario', icon: Users, href: '/users', color: 'bg-[hsl(var(--chart-1))]' },
-    { title: 'Nuevo Producto', icon: Package, href: '/products', color: 'bg-[hsl(var(--chart-2))]' },
-    { title: 'Ver Reportes', icon: TrendUp, href: '/reports', color: 'bg-[hsl(var(--chart-3))]' },
-    { title: 'Configuración', icon: Pulse, href: '/settings', color: 'bg-[hsl(var(--chart-4))]' },
+    { title: 'Nuevo Usuario', icon: Users, href: '/users', color: 'bg-[#0303b5]' },
+    { title: 'Nuevo Producto', icon: Package, href: '/products', color: 'bg-[#0303b5]' },
+    { title: 'Ver Reportes', icon: TrendUp, href: '/reports', color: 'bg-[#0303b5]' },
+    { title: 'Configuración', icon: Pulse, href: '/settings', color: 'bg-[#0303b5]' },
   ];
 
   // Chart data
