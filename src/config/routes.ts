@@ -10,6 +10,8 @@ export interface RouteConfig {
   isPublic?: boolean;
   requiredRoles?: string[];
   requiredPermissions?: string[];
+  /** Roles que no deben ver esta ruta en menú ni acceder por URL */
+  hiddenRoles?: string[];
   children?: RouteConfig[];
   showInSidebar?: boolean;
   badge?: string | number;
@@ -103,6 +105,7 @@ export const routeConfig: RouteConfig[] = [
     icon: Package,
     component: ClientesCRUD,
     requiredPermissions: ['customers.view'],
+    hiddenRoles: ['cliente', 'client'],
     showInSidebar: true,
   },
   {
@@ -256,9 +259,12 @@ export const getProtectedRoutes = () => {
   return routeConfig.filter(route => !route.isPublic);
 };
 
+export const getHomePathForRoles = (_userRoles: string[] = []): string => '/dashboard';
+
 export const getSidebarRoutes = (userRoles: string[] = []) => {
   return routeConfig.filter(route => {
     if (!route.showInSidebar) return false;
+    if (route.hiddenRoles?.some((role) => userRoles.includes(role))) return false;
     if (route.requiredRoles && route.requiredRoles.length > 0) {
       return route.requiredRoles.some(role => userRoles.includes(role));
     }
@@ -272,6 +278,7 @@ export const getRouteByPath = (path: string): RouteConfig | undefined => {
 
 export const hasRouteAccess = (route: RouteConfig, userRoles: string[] = [], userPermissions: string[] = []): boolean => {
   if (route.isPublic) return true;
+  if (route.hiddenRoles?.some((role) => userRoles.includes(role))) return false;
   if (userRoles.includes('admin')) return true;
   if (route.requiredPermissions && route.requiredPermissions.length > 0) {
     return route.requiredPermissions.every(permission => userPermissions.includes(permission));

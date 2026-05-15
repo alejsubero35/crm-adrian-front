@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CustomButton } from '@/components/ui/custom-button';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
+import ClientDashboardPage from '@/pages/ClientDashboardPage';
 import { useUI } from '@/contexts/UIContext';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardService } from '@/services/dashboard.service';
@@ -23,6 +24,14 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 export default function MasterDashboard() {
+  const { hasRole } = useDemoAuth();
+  if (hasRole('cliente') || hasRole('client')) {
+    return <ClientDashboardPage />;
+  }
+  return <StaffMasterDashboard />;
+}
+
+function StaffMasterDashboard() {
   const { user, isDemoMode } = useDemoAuth();
   const { isMobile, isTablet } = useUI();
 
@@ -114,6 +123,25 @@ export default function MasterDashboard() {
     { category: 'Hogar', value: 20 },
     { category: 'Alimentos', value: 17 },
   ];
+
+  const chartMargins = { top: 8, right: 8, left: isMobile ? -8 : 0, bottom: isMobile ? 0 : 4 };
+  const xAxisTickProps = {
+    tickLine: false as const,
+    tickMargin: 8,
+    axisLine: false as const,
+    fontSize: isMobile ? 10 : 12,
+    interval: 0 as const,
+    angle: isMobile ? -28 : 0,
+    textAnchor: isMobile ? ('end' as const) : ('middle' as const),
+    height: isMobile ? 52 : 30,
+  };
+  const yAxisTickProps = {
+    tickLine: false as const,
+    tickMargin: 8,
+    axisLine: false as const,
+    fontSize: isMobile ? 10 : 12,
+    width: isMobile ? 44 : 56,
+  };
 
   const chartConfig = {
     ventas: {
@@ -256,28 +284,27 @@ export default function MasterDashboard() {
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle>Ventas Mensuales</CardTitle>
             <CardDescription>
               Resumen de ventas de los últimos 6 meses
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <AreaChart data={monthlySalesData}>
+          <CardContent className="min-w-0 overflow-x-auto">
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto h-[220px] w-full min-w-[280px] sm:h-[260px] sm:min-w-0 aspect-auto"
+            >
+              <AreaChart data={monthlySalesData} margin={chartMargins}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
+                  {...xAxisTickProps}
                   tickFormatter={(value) => value.slice(0, 3)}
                 />
                 <YAxis
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
+                  {...yAxisTickProps}
                   tickFormatter={(value) => `$${value}`}
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
@@ -293,28 +320,28 @@ export default function MasterDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="min-w-0 overflow-hidden">
           <CardHeader>
             <CardTitle>Distribución por Categoría</CardTitle>
             <CardDescription>
               Productos por categoría
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <BarChart data={categoryData}>
+          <CardContent className="min-w-0 overflow-x-auto">
+            <ChartContainer
+              config={chartConfig}
+              className="mx-auto h-[220px] w-full min-w-[300px] sm:h-[260px] sm:min-w-0 aspect-auto"
+            >
+              <BarChart data={categoryData} margin={chartMargins}>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis
                   dataKey="category"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
+                  {...xAxisTickProps}
+                  tickFormatter={(value) =>
+                    isMobile && String(value).length > 8 ? `${String(value).slice(0, 7)}…` : value
+                  }
                 />
-                <YAxis
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                />
+                <YAxis {...yAxisTickProps} />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar dataKey="value" fill="hsl(var(--chart-3))" radius={8} />
               </BarChart>

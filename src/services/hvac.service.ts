@@ -7,6 +7,7 @@ import type {
   RegisterEquipmentPayload,
   CreateMaintenanceLogPayload,
   ClientPortalResponse,
+  ClientDashboardResponse,
   QrBatch,
   QrItem,
   Subscription,
@@ -90,6 +91,13 @@ export const hvacService = {
 
   async scanQr(uuid: string) {
     const response = await http.get<ScanResponse | ResourceResponse<ScanResponse>>(`/scan/${uuid}`);
+    return unwrapResource(response);
+  },
+
+  async getClientDashboard() {
+    const response = await http.get<ClientDashboardResponse | ResourceResponse<ClientDashboardResponse>>(
+      '/client/dashboard'
+    );
     return unwrapResource(response);
   },
 

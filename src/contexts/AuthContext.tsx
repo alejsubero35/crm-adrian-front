@@ -9,6 +9,7 @@ import { setApiBaseTenant, setApiBaseCentral, setApiBaseFromLocation } from '@/c
 import { AuthContext, User, AuthContextType } from './authContextObj';
 import { ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { getHomePathForRoles } from '@/config/routes';
 
 const isTenantHost = (): boolean => {
 	if (typeof window === 'undefined') return false;
@@ -190,8 +191,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 			} catch {
 				// ignore
 			}
-			// El frontend actual usa /dashboard como ruta principal de inicio.
-			const destination = '/dashboard';
+			const roles = Array.isArray(response.user?.roles)
+				? response.user.roles.map((r: { name?: string } | string) =>
+						typeof r === 'string' ? r : r?.name ?? ''
+					)
+				: [];
+			const destination = getHomePathForRoles(roles.filter(Boolean));
 			// Debug logs para verificar rol y destino
 			try {
 				console.log('[Auth] Usuario autenticado:', response.user);

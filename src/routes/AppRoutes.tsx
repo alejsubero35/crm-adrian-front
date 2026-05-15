@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
-import { getAllRoutes, hasRouteAccess } from '@/config/routes';
+import { getAllRoutes, getHomePathForRoles, hasRouteAccess } from '@/config/routes';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -100,6 +100,16 @@ export function AppRoutes() {
         />
       );
     }
+
+    if (!isPublic && isAuthenticated && !hasAccess) {
+      return (
+        <Route
+          key={path}
+          path={path}
+          element={<Navigate to={getHomePathForRoles(userRoles as string[])} replace />}
+        />
+      );
+    }
     
     // Public routes (like login) should be rendered without layout
     if (isPublic) {
@@ -147,7 +157,7 @@ export function AppRoutes() {
         path="/"
         element={
           isAuthenticated ? (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={getHomePathForRoles(userRoles as string[])} replace />
           ) : (
             <Navigate to="/login" replace />
           )

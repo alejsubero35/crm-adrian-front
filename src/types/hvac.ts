@@ -130,6 +130,29 @@ export type ClientEquipmentSummary = {
   protection_active?: boolean;
 };
 
+export type ClientDashboardResponse = {
+  customer: {
+    id: number;
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+  };
+  stats: {
+    equipments_count: number;
+    protection_active_count: number;
+    maintenance_due_count: number;
+    monthly_investment: number;
+  };
+  equipments: ClientEquipmentSummary[];
+  recent_maintenance: Array<{
+    service_type: string;
+    created_at?: string | null;
+    equipment_label: string;
+    technician_name?: string | null;
+  }>;
+};
+
 export type ClientPortalResponse = {
   customer: {
     id: number;

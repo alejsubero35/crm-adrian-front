@@ -46,11 +46,7 @@ export function MobileBottomNav() {
     }
 
     if (isCliente) {
-      return [
-        byId('home'),
-        byId('scan'),
-        byId('clientes'),
-      ].filter(Boolean);
+      return [byId('home'), byId('scan')].filter(Boolean);
     }
 
     return allowedByRole;

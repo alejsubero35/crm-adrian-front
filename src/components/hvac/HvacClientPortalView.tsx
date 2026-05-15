@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/loading-spinner';
 import { useToast } from '@/hooks/use-toast';
 import { hvacService } from '@/services/hvac.service';
-import type { ClientEquipmentSummary, ClientPortalResponse, EquipmentDetails } from '@/types/hvac';
+import type { ClientPortalResponse, EquipmentDetails } from '@/types/hvac';
 import { cn } from '@/lib/utils';
 import { listHvacDiagnosticMeasurements } from '@/utils/hvacDiagnosticFields';
+import { HvacEquipmentSummaryCard } from '@/components/hvac/HvacEquipmentSummaryCard';
+import { formatMaintenanceShort } from '@/components/hvac/hvacEquipmentCardUtils';
 
 const statusLabels: Record<string, string> = {
   operational: 'Operativo',
@@ -35,28 +37,6 @@ function formatDate(value?: string | null) {
   return date.toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function formatMaintenanceShort(value?: string | null) {
-  if (!value) return '—';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = String(date.getFullYear()).slice(-2);
-  return `${day}/${month}/${year}`;
-}
-
-function splitInstallationLocation(location?: string | null) {
-  const trimmed = location?.trim();
-  if (!trimmed) {
-    return { primary: 'Sin ubicación', secondary: '' };
-  }
-  const parts = trimmed.split(/\s+/);
-  if (parts.length === 1) {
-    return { primary: parts[0], secondary: '' };
-  }
-  return { primary: parts[0], secondary: parts.slice(1).join(' ') };
-}
-
 function formatDateTime(value?: string | null) {
   if (!value) return 'No definido';
   const date = new Date(value);
@@ -68,71 +48,6 @@ function formatDateTime(value?: string | null) {
     hour: '2-digit',
     minute: '2-digit',
   });
-}
-
-function EquipmentCard({
-  item,
-  isActive,
-  isScanned,
-  onSelect,
-}: {
-  item: ClientEquipmentSummary;
-  isActive: boolean;
-  isScanned: boolean;
-  onSelect: () => void;
-}) {
-  const { primary, secondary } = splitInstallationLocation(item.installation_location);
-  const monthlyAmount = item.monthly_amount ?? 0;
-  const protectionActive = item.protection_active ?? false;
-
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={cn(
-        'w-full rounded-lg border-2 p-4 text-left transition-all hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-        isActive && 'border-primary ring-2 ring-primary shadow-md',
-        !isActive && 'border-border bg-card hover:border-primary/40',
-        isScanned && !isActive && 'border-amber-400'
-      )}
-    >
-      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-        <p className="text-lg font-bold leading-tight truncate">{primary}</p>
-        <p className="text-lg font-bold leading-tight text-right truncate">
-          FCT: {monthlyAmount.toFixed(0)} $
-        </p>
-
-        {secondary ? (
-          <p className="text-lg font-bold leading-tight truncate">{secondary}</p>
-        ) : (
-          <span aria-hidden />
-        )}
-        <p className="text-sm font-semibold text-right self-center">Proteccion</p>
-
-        <p className="text-base font-bold leading-tight truncate">
-          {item.brand} {item.capacity}
-        </p>
-        <div className="flex justify-end items-center">
-          <Badge
-            variant="outline"
-            className={cn(
-              'rounded px-3 py-0.5 text-sm font-bold border-0',
-              protectionActive ? 'bg-emerald-500 text-white' : 'bg-muted text-muted-foreground'
-            )}
-          >
-            {protectionActive ? 'Activa' : 'Inactiva'}
-          </Badge>
-        </div>
-
-        <p className="col-span-2 text-sm font-bold mt-2">
-          Proximo Mtto {formatMaintenanceShort(item.next_service_at)}
-        </p>
-      </div>
-      {isScanned ? (
-        <p className="mt-2 text-[11px] font-medium text-amber-700">QR escaneado</p>
-      ) : null}
-    </button>
-  );
 }
 
 function EquipmentDetailPanel({ detail }: { detail: EquipmentDetails }) {
@@ -338,7 +253,7 @@ export function HvacClientPortalView({ scannedQrUuid }: Props) {
         <>
           <div className="grid gap-3 sm:grid-cols-2">
             {portal.equipments.map((item) => (
-              <EquipmentCard
+              <HvacEquipmentSummaryCard
                 key={item.id}
                 item={item}
                 isActive={selectedId === item.id}

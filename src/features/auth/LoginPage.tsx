@@ -2,6 +2,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Navigate, Link } from 'react-router-dom';
 import { useDemoAuth } from './DemoAuthContext';
+import { getHomePathForRoles } from '@/config/routes';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
@@ -26,7 +27,7 @@ interface LoginFormData {
 }
 
 export default function LoginPage() {
-  const { login, isLoading, isAuthenticated } = useDemoAuth();
+  const { login, isLoading, isAuthenticated, user } = useDemoAuth();
   const [error, setError] = React.useState<string>('');
   const [showPassword, setShowPassword] = React.useState(false);
   const [capsOn, setCapsOn] = React.useState(false);
@@ -38,7 +39,7 @@ export default function LoginPage() {
   } = useForm<LoginFormData>();
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={getHomePathForRoles(user?.roles ?? [])} replace />;
   }
 
   const onSubmit = async (data: LoginFormData) => {

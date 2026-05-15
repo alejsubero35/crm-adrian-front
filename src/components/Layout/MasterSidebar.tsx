@@ -36,6 +36,7 @@ interface SidebarItem {
   children?: SidebarItem[];
   requiredRoles?: string[];
   requiredPermissions?: string[];
+  hiddenRoles?: string[];
 }
 
 interface SidebarProps {
@@ -75,8 +76,9 @@ const defaultSidebarItems: SidebarItem[] = [
     label: 'Clientes',
     icon: Package,
     href: '/clientes',
-    requiredRoles: ['admin','tecnico'],
+    requiredRoles: ['admin', 'tecnico', 'técnico'],
     requiredPermissions: ['customers.view'],
+    hiddenRoles: ['cliente', 'client'],
   },
   {
     id: 'qrs',
@@ -202,6 +204,8 @@ export function MasterSidebar({ className = '', items = defaultSidebarItems }: S
   };
 
   const renderSidebarItem = (item: SidebarItem, level = 0) => {
+    if (item.hiddenRoles?.some((role) => userRoles.includes(role))) return null;
+
     const passesRequiredRoles =
       !item.requiredRoles?.length ||
       isAdmin ||
