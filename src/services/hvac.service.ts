@@ -6,6 +6,7 @@ import type {
   EquipmentDetails,
   RegisterEquipmentPayload,
   CreateMaintenanceLogPayload,
+  ClientPortalResponse,
   QrBatch,
   QrItem,
   Subscription,
@@ -52,6 +53,24 @@ export const hvacService = {
     return http.delete<{ message: string }>(`/customers/${id}`);
   },
 
+  async syncCustomerPortalUser(customerId: number, userId: number | null) {
+    const response = await http.put<Customer | ResourceResponse<Customer>>(
+      `/customers/${customerId}/portal-user`,
+      { user_id: userId }
+    );
+    return unwrapResource(response);
+  },
+
+  async createCustomerPortalUser(
+    customerId: number,
+    payload: { email?: string; password: string; name?: string }
+  ) {
+    return http.post<{ message: string; portal_user: { id: number; email: string; name: string } }>(
+      `/customers/${customerId}/portal-user`,
+      payload
+    );
+  },
+
   async getPlans() {
     const response = await http.get<Plan[] | PaginatedResponse<Plan>>('/plans');
     return unwrapList(response);
@@ -71,6 +90,17 @@ export const hvacService = {
 
   async scanQr(uuid: string) {
     const response = await http.get<ScanResponse | ResourceResponse<ScanResponse>>(`/scan/${uuid}`);
+    return unwrapResource(response);
+  },
+
+  async getClientPortal(params: { scanned_qr_uuid?: string; equipment_id?: number }) {
+    const search = new URLSearchParams();
+    if (params.scanned_qr_uuid) search.set('scanned_qr_uuid', params.scanned_qr_uuid);
+    if (params.equipment_id != null) search.set('equipment_id', String(params.equipment_id));
+    const qs = search.toString();
+    const response = await http.get<ClientPortalResponse | ResourceResponse<ClientPortalResponse>>(
+      `/client/portal${qs ? `?${qs}` : ''}`
+    );
     return unwrapResource(response);
   },
 

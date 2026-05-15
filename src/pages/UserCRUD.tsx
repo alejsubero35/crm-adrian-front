@@ -13,12 +13,16 @@ import { Plus, Users, Calendar, Shield } from 'lucide-react';
 import { PencilSimple, Trash } from '@phosphor-icons/react';
 import { z } from 'zod';
 import { rbacService } from '@/services/rbac.service';
+import { hvacService } from '@/services/hvac.service';
+import type { Customer } from '@/types/hvac';
 
 type UserRow = {
   id: number;
   name: string;
   email: string;
   role: string;
+  customerId: number | null;
+  customerName: string | null;
   status: 'active' | 'inactive' | 'pending';
   createdAt: string;
   lastLogin: string | null;
@@ -28,6 +32,7 @@ export default function UserCRUD() {
   const { user: currentUser, hasRole } = useDemoAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<UserRow[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [availableRoles, setAvailableRoles] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [listLoading, setListLoading] = useState(true);
@@ -38,16 +43,20 @@ export default function UserCRUD() {
   const loadRoleManagerData = async () => {
     try {
       setListLoading(true);
-      const [usersResponse, rolePermissionResponse] = await Promise.all([
+      const [usersResponse, rolePermissionResponse, customersData] = await Promise.all([
         rbacService.getUsers(),
         rbacService.getRolesPermissions(),
+        hvacService.getCustomers(),
       ]);
+      setCustomers(customersData);
       setUsers(
         usersResponse.data.map((user) => ({
           id: user.id,
           name: `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim() || user.email,
           email: user.email,
           role: user.roles?.[0] ?? 'sin-rol',
+          customerId: user.customer_id ?? null,
+          customerName: user.customer_name ?? null,
           status: 'active',
           createdAt: '-',
           lastLogin: null,
@@ -81,6 +90,15 @@ export default function UserCRUD() {
         .includes(term)
     );
   }, [users, search]);
+
+  const customerSelectOptions = useMemo(
+    () =>
+      customers.map((c) => ({
+        value: String(c.id),
+        label: c.name,
+      })),
+    [customers]
+  );
 
   const createFormFields: FormFieldConfig[] = useMemo(() => {
     const roleOptions = availableRoles.map((role) => ({
@@ -133,8 +151,18 @@ export default function UserCRUD() {
         ],
         validation: z.enum(['active', 'inactive', 'pending']),
       },
+      {
+        name: 'customer_id',
+        label: 'Cliente vinculado',
+        type: 'select',
+        required: false,
+        placeholder: 'Selecciona un cliente',
+        description: 'Obligatorio si el rol es "cliente" (acceso al portal QR).',
+        options: customerSelectOptions,
+        validation: z.string().optional(),
+      },
     ];
-  }, [availableRoles]);
+  }, [availableRoles, customerSelectOptions]);
 
   const editFormFields: FormFieldConfig[] = useMemo(() => {
     const roleOptions = availableRoles.map((role) => ({
@@ -188,8 +216,18 @@ export default function UserCRUD() {
         ],
         validation: z.enum(['active', 'inactive', 'pending']),
       },
+      {
+        name: 'customer_id',
+        label: 'Cliente vinculado',
+        type: 'select',
+        required: false,
+        placeholder: 'Selecciona un cliente',
+        description: 'Obligatorio si el rol es "cliente" (acceso al portal QR).',
+        options: customerSelectOptions,
+        validation: z.string().optional(),
+      },
     ];
-  }, [availableRoles]);
+  }, [availableRoles, customerSelectOptions]);
 
   const statusBadge = (status: UserRow['status']) => {
     const statusConfig = {
@@ -228,6 +266,17 @@ export default function UserCRUD() {
       },
       hideBelow: 'md',
       mobileLabel: 'Rol',
+    },
+    {
+      id: 'customer',
+      header: 'Cliente',
+      cell: ({ item }) => (
+        <span className="text-sm text-muted-foreground truncate max-w-[140px] block">
+          {item.customerName || (item.role === 'cliente' ? 'Sin vincular' : '—')}
+        </span>
+      ),
+      hideBelow: 'lg',
+      mobileLabel: 'Cliente',
     },
     {
       id: 'status',
@@ -316,15 +365,31 @@ export default function UserCRUD() {
   ];
 
   // Form submission handlers
-  const handleCreateUser = async (data: any) => {
+  const parseCustomerId = (role: string, customerIdRaw?: string) => {
+    if (role !== 'cliente') return null;
+    const id = customerIdRaw ? Number(customerIdRaw) : NaN;
+    return Number.isFinite(id) && id > 0 ? id : null;
+  };
+
+  const handleCreateUser = async (data: Record<string, string>) => {
     setLoading(true);
     try {
+      const customerId = parseCustomerId(data.role, data.customer_id);
+      if (data.role === 'cliente' && !customerId) {
+        toast({
+          variant: 'destructive',
+          title: 'Cliente requerido',
+          description: 'Selecciona el cliente al que pertenece este usuario de portal.',
+        });
+        return;
+      }
       await rbacService.createUser({
         name: data.name,
         email: data.email,
         role: data.role,
         status: data.status,
         password: data.password || undefined,
+        customer_id: customerId,
       });
       await loadRoleManagerData();
       setIsCreateDialogOpen(false);
@@ -344,17 +409,27 @@ export default function UserCRUD() {
     }
   };
 
-  const handleUpdateUser = async (data: any) => {
+  const handleUpdateUser = async (data: Record<string, string>) => {
     if (!editingUser) return;
     
     setLoading(true);
     try {
+      const customerId = parseCustomerId(data.role, data.customer_id);
+      if (data.role === 'cliente' && !customerId) {
+        toast({
+          variant: 'destructive',
+          title: 'Cliente requerido',
+          description: 'Selecciona el cliente al que pertenece este usuario de portal.',
+        });
+        return;
+      }
       await rbacService.updateUser(editingUser.id, {
         name: data.name,
         email: data.email,
         role: data.role,
         status: data.status,
         password: data.password || undefined,
+        customer_id: customerId,
       });
       await loadRoleManagerData();
       setEditingUser(null);
@@ -525,6 +600,7 @@ export default function UserCRUD() {
               defaultValues={{
                 ...editingUser,
                 password: '',
+                customer_id: editingUser.customerId ? String(editingUser.customerId) : undefined,
               }}
             />
           )}

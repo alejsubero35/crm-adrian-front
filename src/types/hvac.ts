@@ -5,6 +5,15 @@ export type Customer = {
   email?: string | null;
   phone?: string | null;
   address?: string | null;
+  como_nos_conocio?: string | null;
+  gps_coordinates?: string | null;
+  equipments_count?: number;
+  monthly_investment?: number;
+  portal_user?: {
+    id: number;
+    email: string;
+    name: string;
+  } | null;
 };
 
 export type Plan = {
@@ -12,9 +21,40 @@ export type Plan = {
   name: string;
   description?: string | null;
   maintenance_frequency_days: number;
+  monthly_amount?: number;
+};
+
+export type EquipmentDiagnosticApi = {
+  measured_voltage?: string | null;
+  measured_amperage_compressor?: string | null;
+  measured_amperage_motor_condenser?: string | null;
+  measured_amperage_motor_evaporator?: string | null;
+  measured_capacitor_compressor?: string | null;
+  measured_capacitor_master_kit?: string | null;
+  measured_capacitor_motor_condenser?: string | null;
+  measured_capacitor_motor_evaporator?: string | null;
+  measured_sensor_pozo?: string | null;
+  measured_sensor_ambient_evaporator?: string | null;
+  measured_sensor_discharge_compressor?: string | null;
+  measured_sensor_ambient_condenser?: string | null;
+  measured_voltage_protector_ok?: boolean | null;
+  measured_pressure_high_psi?: string | null;
+  measured_pressure_low_psi?: string | null;
+  measured_supply_temp_c?: string | null;
+  measured_return_temp_c?: string | null;
+  measured_thermal_jump_c?: string | null;
+  measured_coil_status?: string | null;
+  measured_evaporator_air_speed?: string | null;
+  measured_condenser_air_speed?: string | null;
+  measured_turbine_status?: string | null;
+  measured_filter_status?: string | null;
+  measured_strange_noises?: string | null;
+  measured_drainage_status?: string | null;
+  service_observations?: string | null;
 };
 
 export type MaintenanceLog = {
+  id?: number;
   service_type: string;
   description?: string | null;
   photos?: string[];
@@ -23,11 +63,13 @@ export type MaintenanceLog = {
     email?: string;
   };
   created_at?: string | null;
+  diagnostic?: EquipmentDiagnosticApi | null;
 };
 
 export type EquipmentDetails = {
   qr_uuid: string;
   equipment: {
+    id?: number;
     brand: string;
     model: string;
     serial_number: string;
@@ -38,6 +80,23 @@ export type EquipmentDetails = {
     last_service_at?: string | null;
     next_service_at?: string | null;
     gps_coordinates?: string | null;
+    installation_location?: string | null;
+    plate_voltage?: string | null;
+    plate_amperage_compressor?: string | null;
+    plate_amperage_motor_condenser?: string | null;
+    plate_amperage_motor_evaporator?: string | null;
+    plate_capacitor_compressor?: string | null;
+    plate_capacitor_master_kit?: string | null;
+    plate_capacitor_motor_condenser?: string | null;
+    plate_capacitor_motor_evaporator?: string | null;
+    plate_sensor_pozo?: string | null;
+    plate_sensor_ambient_evaporator?: string | null;
+    plate_sensor_discharge_compressor?: string | null;
+    plate_sensor_ambient_condenser?: string | null;
+    plate_refrigerant?: string | null;
+    plate_pressures_ref_psi?: string | null;
+    plate_evaporator_bearing_no?: string | null;
+    plate_condenser_bearing_no?: string | null;
   };
   customer?: Customer;
   plan?: Plan;
@@ -53,25 +112,51 @@ export type ScanAvailableResponse = {
 
 export type ScanResponse = ScanAvailableResponse | EquipmentDetails;
 
-export type RegisterEquipmentPayload = {
-  qr_uuid: string;
-  plan_id: number;
-  customer: {
-    name: string;
-    tax_id?: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-  };
+export type ClientEquipmentSummary = {
+  id: number;
+  qr_uuid?: string | null;
   brand: string;
   model: string;
   serial_number: string;
   type: string;
   capacity: string;
   refrigerant_type: string;
+  current_status: string;
+  last_service_at?: string | null;
+  next_service_at?: string | null;
+  plan_name?: string | null;
+  installation_location?: string | null;
+  monthly_amount?: number;
+  protection_active?: boolean;
+};
+
+export type ClientPortalResponse = {
+  customer: {
+    id: number;
+    name: string;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+  };
+  scanned_qr_uuid?: string | null;
+  active_equipment_id?: number | null;
+  equipments: ClientEquipmentSummary[];
+  selected: EquipmentDetails | null;
+};
+
+export type RegisterEquipmentPayload = {
+  qr_uuid: string;
+  plan_id: number;
+  customer_id: number;
+  brand: string;
+  model: string;
+  serial_number: string;
+  type: string;
+  capacity: string;
+  refrigerant_type: string;
+  installation_location: string;
   current_status?: 'operational' | 'maintenance_due' | 'in_repair' | 'out_of_service';
   last_service_at?: string;
-  gps_coordinates?: string;
 };
 
 export type CreateMaintenanceLogPayload = {
@@ -79,6 +164,8 @@ export type CreateMaintenanceLogPayload = {
   service_type: string;
   description?: string;
   photos_json?: string[];
+  plate?: Partial<Record<string, string>>;
+  diagnostic?: Partial<Record<string, string | boolean>>;
 };
 
 export type QrItem = {

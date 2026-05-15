@@ -154,11 +154,13 @@ export function GenericForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {options?.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    {options
+                      ?.filter((option) => option.value !== '')
+                      .map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 {description && <FormDescription>{description}</FormDescription>}

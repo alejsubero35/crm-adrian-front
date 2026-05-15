@@ -27,12 +27,12 @@ export default function PlanesCRUD() {
 
   const createForm = useForm<PlanFormData>({
     resolver: zodResolver(planSchema),
-    defaultValues: { name: '', description: '', maintenance_frequency_days: 30 },
+    defaultValues: { name: '', description: '', maintenance_frequency_days: 30, monthly_amount: 0 },
   });
 
   const editForm = useForm<PlanFormData>({
     resolver: zodResolver(planSchema),
-    defaultValues: { name: '', description: '', maintenance_frequency_days: 30 },
+    defaultValues: { name: '', description: '', maintenance_frequency_days: 30, monthly_amount: 0 },
   });
 
   const loadPlans = async () => {
@@ -76,6 +76,7 @@ export default function PlanesCRUD() {
       name: plan.name,
       description: plan.description ?? '',
       maintenance_frequency_days: plan.maintenance_frequency_days,
+      monthly_amount: plan.monthly_amount ?? 0,
     });
     setIsEditModalOpen(true);
   };
@@ -130,6 +131,15 @@ export default function PlanesCRUD() {
       header: 'Frecuencia',
       cell: ({ item }) => <Badge variant="secondary">{item.maintenance_frequency_days} dias</Badge>,
       mobileLabel: 'Frecuencia',
+    },
+    {
+      id: 'monthly_amount',
+      header: 'Monto mensual',
+      cell: ({ item }) => (
+        <span className="tabular-nums font-medium">${(item.monthly_amount ?? 0).toFixed(2)}</span>
+      ),
+      hideBelow: 'md',
+      mobileLabel: 'Monto mensual',
     },
     {
       id: 'description',
@@ -220,6 +230,14 @@ export default function PlanesCRUD() {
             step="1"
             required
           />
+          <ValidatedInput
+            label="Monto mensual (USD)"
+            name="monthly_amount"
+            control={createForm.control}
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
         </form>
       </EditModal>
 
@@ -245,6 +263,14 @@ export default function PlanesCRUD() {
             type="number"
             step="1"
             required
+          />
+          <ValidatedInput
+            label="Monto mensual (USD)"
+            name="monthly_amount"
+            control={editForm.control}
+            type="number"
+            step="0.01"
+            placeholder="0.00"
           />
         </form>
       </EditModal>

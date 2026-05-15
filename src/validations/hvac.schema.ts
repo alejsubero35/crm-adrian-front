@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { HVAC_MEASURED_FIELD_KEYS, HVAC_PLATE_FIELD_KEYS } from '@/utils/hvacDiagnosticFields';
 
 export const customerSchema = z.object({
   name: z.string().min(2, 'El nombre es obligatorio'),
@@ -6,6 +7,8 @@ export const customerSchema = z.object({
   email: z.string().email('Email invalido').optional().or(z.literal('')),
   phone: z.string().optional(),
   address: z.string().optional(),
+  como_nos_conocio: z.string().optional(),
+  gps_coordinates: z.string().optional(),
 });
 
 export const planSchema = z.object({
@@ -15,6 +18,10 @@ export const planSchema = z.object({
     .number({ invalid_type_error: 'Debe ser numerico' })
     .int('Debe ser un numero entero')
     .min(1, 'Debe ser mayor a 0'),
+  monthly_amount: z.coerce
+    .number({ invalid_type_error: 'Debe ser numerico' })
+    .min(0, 'No puede ser negativo')
+    .optional(),
 });
 
 export const registerEquipmentSchema = z.object({
@@ -26,13 +33,34 @@ export const registerEquipmentSchema = z.object({
   type: z.string().min(1, 'Tipo requerido'),
   capacity: z.string().min(1, 'Capacidad requerida'),
   refrigerant_type: z.string().min(1, 'Tipo de gas requerido'),
-  gps_coordinates: z.string().optional(),
+  installation_location: z.string().min(1, 'Indica dónde está instalado el equipo'),
 });
 
 export const maintenanceLogSchema = z.object({
   service_type: z.string().min(1, 'Tipo de servicio requerido'),
   description: z.string().optional(),
 });
+
+const hvacOptionalString = z.union([z.string(), z.literal('')]).optional();
+const hvacOptionalBooleanChoice = z
+  .union([z.literal(''), z.literal('true'), z.literal('false')])
+  .optional();
+
+const plateFieldsShape = Object.fromEntries(
+  HVAC_PLATE_FIELD_KEYS.map((k) => [k, hvacOptionalString])
+) as Record<(typeof HVAC_PLATE_FIELD_KEYS)[number], z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodLiteral<''>]>>>;
+
+const measuredFieldsShape = Object.fromEntries(
+  HVAC_MEASURED_FIELD_KEYS.map((k) => [
+    k,
+    k === 'measured_voltage_protector_ok' ? hvacOptionalBooleanChoice : hvacOptionalString,
+  ])
+) as Record<(typeof HVAC_MEASURED_FIELD_KEYS)[number], z.ZodOptional<z.ZodUnion<[z.ZodString, z.ZodLiteral<''>]>>>;
+
+/** Formulario completo: servicio + placa + mediciones (misma forma plana que el payload armado al enviar). */
+export const hvacMaintenanceRegisterSchema = maintenanceLogSchema.merge(z.object(plateFieldsShape)).merge(z.object(measuredFieldsShape));
+
+export type HvacMaintenanceRegisterFormData = z.infer<typeof hvacMaintenanceRegisterSchema>;
 
 export const qrBatchSchema = z.object({
   quantity: z.coerce

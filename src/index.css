@@ -6,6 +6,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Sugerencias de Google Places sobre modales */
+.pac-container {
+  z-index: 10050 !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 98%;

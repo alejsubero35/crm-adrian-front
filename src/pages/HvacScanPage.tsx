@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Camera, MapPin, Wrench } from 'lucide-react';
+import { Camera, Wrench } from 'lucide-react';
 import QrScanner from 'qr-scanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -13,16 +13,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/loading-spinner';
 import { SearchableSelect } from '@/components/ui/SearchableSelect';
 import { ValidatedInput } from '@/components/ui/ValidatedInput';
-import { ValidatedTextarea } from '@/components/ui/ValidatedTextarea';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { hvacService } from '@/services/hvac.service';
 import type { Customer, Plan, EquipmentDetails } from '@/types/hvac';
 import {
   registerEquipmentSchema,
-  maintenanceLogSchema,
   type RegisterEquipmentFormData,
-  type MaintenanceLogFormData,
 } from '@/validations/hvac.schema';
+import { listHvacDiagnosticMeasurements } from '@/utils/hvacDiagnosticFields';
+import { HvacClientPortalView } from '@/components/hvac/HvacClientPortalView';
 
 const statusStyle: Record<string, string> = {
   operational: 'bg-emerald-100 text-emerald-800',
@@ -43,7 +42,6 @@ export default function HvacScanPage() {
   const [isAvailable, setIsAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
-  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isLogDetailModalOpen, setIsLogDetailModalOpen] = useState(false);
   const [selectedLogIndex, setSelectedLogIndex] = useState<number | null>(null);
   const [manualUuid, setManualUuid] = useState('');
@@ -70,15 +68,7 @@ export default function HvacScanPage() {
       type: '',
       capacity: '',
       refrigerant_type: '',
-      gps_coordinates: '',
-    },
-  });
-
-  const logForm = useForm<MaintenanceLogFormData>({
-    resolver: zodResolver(maintenanceLogSchema),
-    defaultValues: {
-      service_type: '',
-      description: '',
+      installation_location: '',
     },
   });
 
@@ -120,8 +110,10 @@ export default function HvacScanPage() {
   useEffect(() => {
     if (!uuid) return;
     void fetchScan();
-    void loadFormData();
-  }, [uuid]);
+    if (!isClientRole) {
+      void loadFormData();
+    }
+  }, [uuid, isClientRole]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -219,37 +211,15 @@ export default function HvacScanPage() {
     navigate(`/scan/${nextUuid}`);
   };
 
-  const customerById = useMemo(
-    () => Object.fromEntries(customers.map((customer) => [String(customer.id), customer])),
-    [customers]
-  );
   const planById = useMemo(
     () => Object.fromEntries(plans.map((plan) => [String(plan.id), plan])),
     [plans]
   );
 
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      toast({ variant: 'destructive', title: 'GPS no disponible', description: 'El dispositivo no soporta geolocalizacion.' });
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords = `${position.coords.latitude},${position.coords.longitude}`;
-        registerForm.setValue('gps_coordinates', coords, { shouldDirty: true });
-        toast({ variant: 'success', title: 'Ubicacion obtenida', description: 'Se cargo la coordenada del equipo.' });
-      },
-      () => {
-        toast({ variant: 'destructive', title: 'No se pudo leer GPS', description: 'Verifica permisos de ubicacion.' });
-      }
-    );
-  };
-
   const handleRegister = async (values: RegisterEquipmentFormData) => {
-    const customer = customerById[values.customer_id];
     const plan = planById[values.plan_id];
-    if (!customer || !plan) {
+    const customerId = Number(values.customer_id);
+    if (!values.customer_id || !Number.isFinite(customerId) || !plan) {
       toast({ variant: 'destructive', title: 'Datos incompletos', description: 'Selecciona cliente y plan validos.' });
       return;
     }
@@ -259,20 +229,14 @@ export default function HvacScanPage() {
       await hvacService.registerEquipment({
         qr_uuid: uuid,
         plan_id: plan.id,
-        customer: {
-          name: customer.name,
-          tax_id: customer.tax_id ?? undefined,
-          email: customer.email ?? undefined,
-          phone: customer.phone ?? undefined,
-          address: customer.address ?? undefined,
-        },
+        customer_id: customerId,
         brand: values.brand,
         model: values.model,
         serial_number: values.serial_number,
         type: values.type,
         capacity: values.capacity,
         refrigerant_type: values.refrigerant_type,
-        gps_coordinates: values.gps_coordinates,
+        installation_location: values.installation_location,
       });
       toast({ variant: 'success', title: 'Equipo vinculado', description: 'Redirigiendo al dashboard del equipo...' });
       await fetchScan();
@@ -285,26 +249,6 @@ export default function HvacScanPage() {
       });
     } finally {
       setRegistering(false);
-    }
-  };
-
-  const handleCreateLog = async (values: MaintenanceLogFormData) => {
-    try {
-      await hvacService.createMaintenanceLog({
-        equipment_qr_uuid: uuid,
-        service_type: values.service_type,
-        description: values.description,
-      });
-      toast({ variant: 'success', title: 'Servicio registrado', description: 'El historial fue actualizado.' });
-      setIsLogModalOpen(false);
-      logForm.reset();
-      await fetchScan();
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'No se pudo registrar',
-        description: error instanceof Error ? error.message : 'Intenta nuevamente.',
-      });
     }
   };
 
@@ -358,12 +302,12 @@ export default function HvacScanPage() {
               {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
             </Button>
           ) : !isAvailable && canCreateMaintenance ? (
-            <Button onClick={() => setIsLogModalOpen(true)}>
+            <Button onClick={() => navigate(`/scan/${uuid}/registrar-servicio`)}>
               <Wrench className="h-4 w-4 mr-2" />
               Registrar nuevo servicio
             </Button>
           ) : null}
-          {!isAvailable && isClientRole ? <Badge variant="secondary">Vista cliente</Badge> : null}
+          {!isAvailable && isClientRole && uuid ? <Badge variant="secondary">Portal cliente</Badge> : null}
         </div>
       </div>
 
@@ -424,7 +368,24 @@ export default function HvacScanPage() {
         </Card>
       ) : null}
 
-      {!loading && isAvailable && canManageEquipment ? (
+      {!loading && isClientRole && uuid && isAvailable ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>QR sin vincular</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Este código aún no está asociado a un equipo. Contacta a tu técnico para la vinculación.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!loading && isClientRole && uuid && !isAvailable ? (
+        <HvacClientPortalView scannedQrUuid={uuid} />
+      ) : null}
+
+      {!loading && !isClientRole && isAvailable && canManageEquipment ? (
         <Card>
           <CardHeader>
             <CardTitle>Vincular equipo en primer escaneo</CardTitle>
@@ -465,7 +426,7 @@ export default function HvacScanPage() {
                       options={plans.map((plan) => ({
                         value: String(plan.id),
                         label: plan.name,
-                        description: `${plan.maintenance_frequency_days} dias`,
+                        description: `${plan.maintenance_frequency_days} días · $${(plan.monthly_amount ?? 0).toFixed(2)}/mes`,
                       }))}
                       placeholder="Buscar plan..."
                       searchPlaceholder="Escribe nombre del plan..."
@@ -482,17 +443,19 @@ export default function HvacScanPage() {
                 <ValidatedInput label="Tipo de equipo" name="type" control={registerForm.control} required />
                 <ValidatedInput label="Capacidad" name="capacity" control={registerForm.control} required />
                 <ValidatedInput label="Tipo de gas" name="refrigerant_type" control={registerForm.control} required />
+                <ValidatedInput
+                  label="Ubicación del equipo"
+                  name="installation_location"
+                  control={registerForm.control}
+                  required
+                  placeholder="Ej. Cuarto principal, sala, terraza"
+                />
               </div>
 
-              <ValidatedInput label="GPS" name="gps_coordinates" control={registerForm.control} />
-              <Button type="button" variant="outline" className="w-full" onClick={handleGetLocation}>
-                <MapPin className="h-4 w-4 mr-2" />
-                Obtener ubicacion GPS
-              </Button>
             </form>
           </CardContent>
         </Card>
-      ) : !loading && isAvailable ? (
+      ) : !loading && isAvailable && !isClientRole ? (
         <Card>
           <CardHeader>
             <CardTitle>Equipo pendiente de vinculacion</CardTitle>
@@ -503,7 +466,7 @@ export default function HvacScanPage() {
             </p>
           </CardContent>
         </Card>
-      ) : !loading && scanData ? (
+      ) : !loading && !isClientRole && scanData ? (
         <>
           <Card>
             <CardHeader>
@@ -520,6 +483,7 @@ export default function HvacScanPage() {
               <p><span className="font-medium">Tipo:</span> {scanData.equipment.type}</p>
               <p><span className="font-medium">Capacidad:</span> {scanData.equipment.capacity}</p>
               <p><span className="font-medium">Gas:</span> {scanData.equipment.refrigerant_type}</p>
+              <p><span className="font-medium">Ubicación:</span> {scanData.equipment.installation_location || '—'}</p>
               <p><span className="font-medium">Proximo servicio:</span> {formatDate(scanData.equipment.next_service_at)}</p>
               <p><span className="font-medium">Cliente:</span> {scanData.customer?.name || 'Sin cliente'}</p>
             </CardContent>
@@ -562,7 +526,7 @@ export default function HvacScanPage() {
             </CardContent>
           </Card>
         </>
-      ) : !loading ? (
+      ) : !loading && !isClientRole ? (
         <Card>
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">No se encontro informacion para este QR.</p>
@@ -576,7 +540,7 @@ export default function HvacScanPage() {
             {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
           </Button>
         ) : !isAvailable && canCreateMaintenance ? (
-          <Button className="w-full h-12" onClick={() => setIsLogModalOpen(true)}>
+          <Button className="w-full h-12" onClick={() => navigate(`/scan/${uuid}/registrar-servicio`)}>
             <Wrench className="h-4 w-4 mr-2" />
             Registrar nuevo servicio
           </Button>
@@ -584,27 +548,9 @@ export default function HvacScanPage() {
       </div>
 
       <EditModal
-        open={isLogModalOpen}
-        onOpenChange={setIsLogModalOpen}
-        title="Registrar servicio"
-        description="Agregar registro de mantenimiento."
-        footer={
-          <>
-            <Button variant="outline" onClick={() => setIsLogModalOpen(false)}>Cancelar</Button>
-            <Button onClick={logForm.handleSubmit(handleCreateLog)}>Guardar</Button>
-          </>
-        }
-      >
-        <form className="space-y-4" onSubmit={logForm.handleSubmit(handleCreateLog)}>
-          <ValidatedInput label="Tipo de servicio" name="service_type" control={logForm.control} required />
-          <ValidatedTextarea label="Descripcion" name="description" control={logForm.control} rows={4} />
-        </form>
-      </EditModal>
-
-      <EditModal
         open={isLogDetailModalOpen}
         onOpenChange={setIsLogDetailModalOpen}
-        title="Detalle de mantenimiento"
+        title="Detalle de Mantenimiento"
         description="Información completa del registro seleccionado."
         footer={
           <Button variant="outline" onClick={() => setIsLogDetailModalOpen(false)}>
@@ -614,12 +560,34 @@ export default function HvacScanPage() {
       >
         {selectedLog ? (
           <div className="space-y-3 text-sm">
-            <p><span className="font-medium">Tipo de servicio:</span> {selectedLog.service_type}</p>
-            <p><span className="font-medium">Fecha y hora:</span> {formatDateTime(selectedLog.created_at)}</p>
-            <p><span className="font-medium">Tecnico:</span> {selectedLog.technician?.name || 'No asignado'}</p>
-            <p><span className="font-medium">Correo tecnico:</span> {selectedLog.technician?.email || 'No disponible'}</p>
-            <p><span className="font-medium">Descripcion:</span> {selectedLog.description || 'Sin descripcion'}</p>
-            <p><span className="font-medium">Fotos:</span> {(selectedLog.photos?.length ?? 0) > 0 ? selectedLog.photos?.join(', ') : 'Sin fotos'}</p>
+            <p><span className="font-medium"><strong>Tipo de Servicio:</strong></span> {selectedLog.service_type}</p>
+            <p><span className="font-medium"><strong>Fecha y Hora:</strong></span> {formatDateTime(selectedLog.created_at)}</p>
+            <p><span className="font-medium"><strong>Técnico:</strong></span> {selectedLog.technician?.name || 'No asignado'}</p>
+            <p><span className="font-medium"><strong>Correo Técnico:</strong></span> {selectedLog.technician?.email || 'No disponible'}</p>
+            <p><span className="font-medium"><strong>Descripción:</strong></span> {selectedLog.description || 'Sin descripción'}</p>
+            <p><span className="font-medium"><strong>Fotos:</strong></span> {(selectedLog.photos?.length ?? 0) > 0 ? selectedLog.photos?.join(', ') : 'Sin fotos'}</p>
+            {selectedLog.diagnostic ? (
+              <div className="space-y-1 border-t pt-3 mt-1">
+                <p className="font-medium">Diagnóstico (mediciones)</p>
+                {(() => {
+                  const entries = listHvacDiagnosticMeasurements(selectedLog.diagnostic, {
+                    includeEmpty: true,
+                  });
+                  if (entries.length === 0) {
+                    return <p className="text-xs text-muted-foreground">Sin mediciones en este servicio.</p>;
+                  }
+                  return (
+                    <ul className="list-disc pl-4 space-y-1 text-xs">
+                      {entries.map(({ key, label, value }) => (
+                        <li key={key} className="text-muted-foreground">
+                          <span className="font-medium text-foreground">{label}</span>: {value}
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                })()}
+              </div>
+            ) : null}
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">No hay detalle para mostrar.</p>

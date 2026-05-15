@@ -29,10 +29,27 @@ export const rbacService = {
   },
 
   async getUsers() {
-    return http.get<{ data: Array<{ id: number; email: string; first_name?: string; last_name?: string; roles: string[] }> }>('/users');
+    return http.get<{
+      data: Array<{
+        id: number;
+        email: string;
+        first_name?: string;
+        last_name?: string;
+        roles: string[];
+        customer_id?: number | null;
+        customer_name?: string | null;
+      }>;
+    }>('/users');
   },
 
-  async createUser(payload: { name: string; email: string; password: string; role: string; status?: string }) {
+  async createUser(payload: {
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+    status?: string;
+    customer_id?: number | null;
+  }) {
     return http.post<{ message: string; data: { id: number; email: string; first_name?: string; last_name?: string; roles: string[] } }>(
       '/users',
       payload
@@ -41,7 +58,14 @@ export const rbacService = {
 
   async updateUser(
     userId: number,
-    payload: { name: string; email: string; password?: string; role: string; status?: string }
+    payload: {
+      name: string;
+      email: string;
+      password?: string;
+      role: string;
+      status?: string;
+      customer_id?: number | null;
+    }
   ) {
     return http.put<{ message: string; data: { id: number; email: string; first_name?: string; last_name?: string; roles: string[] } }>(
       `/users/${userId}`,

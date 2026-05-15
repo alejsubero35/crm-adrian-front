@@ -32,6 +32,7 @@ const ClientesCRUD = React.lazy(() => import('@/pages/ClientesCRUD'));
 const PlanesCRUD = React.lazy(() => import('@/pages/PlanesCRUD'));
 const SubscriptionsPage = React.lazy(() => import('@/pages/SubscriptionsPage'));
 const HvacScanPage = React.lazy(() => import('@/pages/HvacScanPage'));
+const HvacMaintenanceRegisterPage = React.lazy(() => import('@/pages/HvacMaintenanceRegisterPage'));
 const QrGeneratorPage = React.lazy(() => import('@/pages/QrGeneratorPage'));
 const ProveedoresCRUD = React.lazy(() => import('@/pages/ProveedoresCRUD'));
 const NotFound = React.lazy(() => import('@/pages/NotFound'));
@@ -130,6 +131,15 @@ export const routeConfig: RouteConfig[] = [
     component: SubscriptionsPage,
     requiredRoles: ['admin'],
     showInSidebar: true,
+  },
+  {
+    id: 'scan-qr-registrar-servicio',
+    path: '/scan/:uuid/registrar-servicio',
+    label: 'Registrar servicio',
+    icon: QrCode,
+    component: HvacMaintenanceRegisterPage,
+    requiredPermissions: ['equipments.view'],
+    showInSidebar: false,
   },
   {
     id: 'scan-qr',
