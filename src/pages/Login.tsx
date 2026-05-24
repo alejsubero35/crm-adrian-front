@@ -63,7 +63,7 @@ export default function Login() {
     <div className="relative min-h-screen overflow-hidden bg-zinc-950 text-zinc-100">
       {/* Ambiente: malla + degradados (calor / frío → lectura HVAC) */}
       <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(241,125,30,0.22),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_-30%,rgba(0,11,194,0.22),transparent_55%)]"
         aria-hidden
       />
       <div
@@ -160,7 +160,7 @@ export default function Login() {
             <div className="mb-8 text-center lg:text-left">
               <h2 className="text-2xl font-bold tracking-tight text-white sm:text-[1.65rem]">Iniciar sesión</h2>
               <p className="mt-2 text-sm text-zinc-400">Entra con tu correo y contraseña corporativos.</p>
-              <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-orange-300 lg:mx-0" />
+              <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-[hsl(var(--primary))] to-blue-300 lg:mx-0" />
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -226,7 +226,7 @@ export default function Login() {
 
               <Button
                 type="submit"
-                className="h-12 w-full rounded-xl bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-4px_rgba(241,125,30,0.45)] transition-[transform,box-shadow] hover:bg-[hsl(var(--primary)/0.92)] hover:shadow-[0_12px_28px_-4px_rgba(241,125,30,0.5)] active:scale-[0.99]"
+                className="h-12 w-full rounded-xl bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-[0_8px_24px_-4px_rgba(0,11,194,0.45)] transition-[transform,box-shadow] hover:bg-[hsl(var(--primary)/0.92)] hover:shadow-[0_12px_28px_-4px_rgba(0,11,194,0.5)] active:scale-[0.99]"
                 disabled={isLoading}
               >
                 {isLoading ? (

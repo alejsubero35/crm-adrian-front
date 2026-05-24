@@ -43,7 +43,14 @@ const normalizeUser = (raw: unknown): User => {
   const candidate = (raw && typeof raw === 'object' && 'data' in (raw as Record<string, unknown>))
     ? (raw as { data: unknown }).data
     : raw;
-  return candidate as User;
+  const u = candidate as User & { customer_name?: string };
+  const first = String(u?.first_name ?? '').trim();
+  const last = String(u?.last_name ?? '').trim();
+  const built = [first, last].filter(Boolean).join(' ');
+  const fallback = built || u?.username || u?.email || '';
+  const name = String(u?.name ?? u?.customer_name ?? fallback).trim() || undefined;
+
+  return { ...u, name };
 };
 
 export const authService = {

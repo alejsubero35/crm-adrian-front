@@ -25,7 +25,6 @@ const ProductCRUD = React.lazy(() => import('@/pages/ProductCRUD'));
 const Reports = React.lazy(() => import('@/pages/Reports'));
 const SettingsPage = React.lazy(() => import('@/pages/SettingsPage'));
 const NavigationSettings = React.lazy(() => import('@/pages/NavigationSettings'));
-const ThemeSettings = React.lazy(() => import('@/pages/ThemeSettings'));
 const PermissionMatrixPage = React.lazy(() => import('@/pages/PermissionMatrixPage'));
 const SalesReport = React.lazy(() => import('@/pages/reports/SalesReport'));
 const InventoryReport = React.lazy(() => import('@/pages/reports/InventoryReport'));
@@ -204,15 +203,6 @@ export const routeConfig: RouteConfig[] = [
         label: 'Navegación Mobile',
         icon: Settings,
         component: NavigationSettings,
-        requiredPermissions: ['users.view'],
-        showInSidebar: true,
-      },
-      {
-        id: 'theme-settings',
-        path: '/settings/theme',
-        label: 'Apariencia',
-        icon: Settings,
-        component: ThemeSettings,
         requiredPermissions: ['users.view'],
         showInSidebar: true,
       },

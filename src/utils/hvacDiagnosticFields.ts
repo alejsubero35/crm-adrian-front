@@ -303,7 +303,7 @@ export const HVAC_CRITICAL_OVER_KEYS = new Set<HvacMeasuredFieldKey>([
 ]);
 
 export function emptyHvacMaintenanceFieldDefaults(): Record<string, string> {
-  const o: Record<string, string> = { service_type: '', description: '' };
+  const o: Record<string, string> = { service_type: '', description: '', spare_parts_cost: '' };
   for (const k of HVAC_PLATE_FIELD_KEYS) {
     o[k] = '';
   }

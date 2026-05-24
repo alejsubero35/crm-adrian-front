@@ -27,12 +27,12 @@ export default function PlanesCRUD() {
 
   const createForm = useForm<PlanFormData>({
     resolver: zodResolver(planSchema),
-    defaultValues: { name: '', description: '', maintenance_frequency_days: 30, monthly_amount: 0 },
+    defaultValues: { name: '', description: '', maintenance_frequency_days: 30, monthly_amount: 0, fondo_de_cobertura: 0 },
   });
 
   const editForm = useForm<PlanFormData>({
     resolver: zodResolver(planSchema),
-    defaultValues: { name: '', description: '', maintenance_frequency_days: 30, monthly_amount: 0 },
+    defaultValues: { name: '', description: '', maintenance_frequency_days: 30, monthly_amount: 0, fondo_de_cobertura: 0 },
   });
 
   const loadPlans = async () => {
@@ -77,6 +77,7 @@ export default function PlanesCRUD() {
       description: plan.description ?? '',
       maintenance_frequency_days: plan.maintenance_frequency_days,
       monthly_amount: plan.monthly_amount ?? 0,
+      fondo_de_cobertura: plan.fondo_de_cobertura ?? 0,
     });
     setIsEditModalOpen(true);
   };
@@ -140,6 +141,15 @@ export default function PlanesCRUD() {
       ),
       hideBelow: 'md',
       mobileLabel: 'Monto mensual',
+    },
+    {
+      id: 'fondo_de_cobertura',
+      header: 'FCT inicial',
+      cell: ({ item }) => (
+        <span className="tabular-nums font-medium">${(item.fondo_de_cobertura ?? 0).toFixed(2)}</span>
+      ),
+      hideBelow: 'lg',
+      mobileLabel: 'FCT inicial',
     },
     {
       id: 'description',
@@ -238,6 +248,14 @@ export default function PlanesCRUD() {
             step="0.01"
             placeholder="0.00"
           />
+          <ValidatedInput
+            label="Fondo de cobertura total — FCT (USD)"
+            name="fondo_de_cobertura"
+            control={createForm.control}
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
         </form>
       </EditModal>
 
@@ -267,6 +285,14 @@ export default function PlanesCRUD() {
           <ValidatedInput
             label="Monto mensual (USD)"
             name="monthly_amount"
+            control={editForm.control}
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+          <ValidatedInput
+            label="Fondo de cobertura total — FCT (USD)"
+            name="fondo_de_cobertura"
             control={editForm.control}
             type="number"
             step="0.01"

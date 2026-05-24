@@ -5,6 +5,8 @@ export interface User {
   username?: string;
   email: string;
   name?: string;
+  customer_name?: string;
+  customer_id?: number | null;
   first_name?: string;
   last_name?: string;
   phone?: string | null;

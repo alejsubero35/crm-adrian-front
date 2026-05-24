@@ -35,6 +35,8 @@ export default {
 				],
 			},
 			colors: {
+				'brand-orange': '#000BC2',
+				'brand-orange-2': '#3339E0',
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',

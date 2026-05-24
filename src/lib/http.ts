@@ -50,7 +50,13 @@ async function request<T>(method: string, path: string, body?: any, options: Htt
     const data = text ? JSON.parse(text) : null;
 
     if (!res.ok) {
-      const message = data?.message || res.statusText;
+      const errors = data?.errors as Record<string, string[]> | undefined;
+      const firstFieldError =
+        errors &&
+        Object.values(errors)
+          .flat()
+          .find((msg) => typeof msg === 'string' && msg.trim().length > 0);
+      const message = firstFieldError || data?.message || res.statusText;
       const error: any = new Error(message);
       error.status = res.status;
       error.data = data;

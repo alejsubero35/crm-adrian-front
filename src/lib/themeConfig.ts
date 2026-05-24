@@ -9,8 +9,16 @@ const STORAGE_KEY = 'theme_config_v1';
 const DEFAULT_THEME: ThemeConfig = {
   sidebarColor: '#000000',
   sidebarTextColor: '#ffffff',
-  primaryColor: '#f17d1e',
+  primaryColor: '#000BC2',
 };
+
+/** Colores primarios legacy (naranja) que se migran al azul de marca. */
+const LEGACY_PRIMARY_COLORS = new Set(['#f17d1e', '#ff7a1a', '#ff6620']);
+
+function normalizePrimaryColor(hex: string): string {
+  const key = hex.trim().toLowerCase();
+  return LEGACY_PRIMARY_COLORS.has(key) ? DEFAULT_THEME.primaryColor : hex;
+}
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
@@ -88,10 +96,13 @@ export function getThemeConfig(): ThemeConfig {
 
   try {
     const parsed = JSON.parse(raw) as Partial<ThemeConfig>;
+    const primaryColor = normalizePrimaryColor(
+      parsed.primaryColor || DEFAULT_THEME.primaryColor,
+    );
     return {
       sidebarColor: parsed.sidebarColor || DEFAULT_THEME.sidebarColor,
       sidebarTextColor: parsed.sidebarTextColor || DEFAULT_THEME.sidebarTextColor,
-      primaryColor: parsed.primaryColor || DEFAULT_THEME.primaryColor,
+      primaryColor,
     };
   } catch {
     return DEFAULT_THEME;

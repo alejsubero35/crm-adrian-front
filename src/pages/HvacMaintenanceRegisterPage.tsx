@@ -176,15 +176,23 @@ export default function HvacMaintenanceRegisterPage() {
     const diagnosticPayload = buildDiagnosticPayload(values as unknown as Record<string, unknown>);
 
     try {
+      const spareParts = values.spare_parts_cost;
+      const sparePartsCost =
+        spareParts !== undefined && spareParts !== '' && Number(spareParts) > 0
+          ? Number(spareParts)
+          : undefined;
+
       await hvacService.createMaintenanceLog({
         equipment_qr_uuid: uuid,
         service_type: values.service_type,
         description: values.description || undefined,
+        spare_parts_cost: sparePartsCost,
         plate: Object.keys(plateToSend).length > 0 ? plateToSend : undefined,
         diagnostic: diagnosticPayload,
       });
       toast({ variant: 'success', title: 'Servicio registrado', description: 'Historial y diagnóstico guardados.' });
       await queryClient.invalidateQueries({ queryKey: ['hvac-scan', uuid] });
+      await queryClient.invalidateQueries({ queryKey: ['client-dashboard'] });
       form.reset(emptyHvacMaintenanceFieldDefaults() as unknown as HvacMaintenanceRegisterFormData);
       navigate(`/scan/${uuid}`, { replace: true });
     } catch (error) {
@@ -295,6 +303,18 @@ export default function HvacMaintenanceRegisterPage() {
             <CardContent className="space-y-4">
               <ValidatedInput label="Tipo de servicio" name="service_type" control={form.control} required />
               <ValidatedTextarea label="Descripcion" name="description" control={form.control} rows={3} />
+              <ValidatedInput
+                label="Repuestos descontados del FCT (USD)"
+                name="spare_parts_cost"
+                control={form.control}
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+              <p className="text-xs text-muted-foreground -mt-2">
+                Monto a descontar del Fondo de Cobertura Total del cliente cuando se usan piezas en la reparación.
+              </p>
             </CardContent>
           </Card>
 

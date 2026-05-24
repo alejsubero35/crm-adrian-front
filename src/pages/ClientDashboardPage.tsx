@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Snowflake, Wrench, ShieldCheck, Calendar, QrCode } from 'lucide-react';
@@ -8,35 +8,91 @@ import { Skeleton } from '@/components/ui/loading-spinner';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { hvacService } from '@/services/hvac.service';
 import { HvacEquipmentSummaryCard } from '@/components/hvac/HvacEquipmentSummaryCard';
-import { formatMaintenanceShort } from '@/components/hvac/hvacEquipmentCardUtils';
+import { formatMaintenanceShort, resolveClientDisplayName } from '@/components/hvac/hvacEquipmentCardUtils';
+import type { ClientEquipmentSummary } from '@/types/hvac';
+
+function deriveDashboardStats(equipments: ClientEquipmentSummary[]) {
+  const now = Date.now();
+  const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+
+  const maintenanceDueCount = equipments.filter((eq) => {
+    if (eq.current_status === 'maintenance_due') return true;
+    if (!eq.next_service_at) return false;
+    const next = new Date(eq.next_service_at).getTime();
+    return !Number.isNaN(next) && next - now <= thirtyDaysMs;
+  }).length;
+
+  const monthlyFromPlans = equipments.reduce(
+    (sum, eq) => sum + (eq.monthly_amount ?? 0),
+    0
+  );
+
+  return {
+    equipments_count: equipments.length,
+    protection_active_count: equipments.filter((eq) => eq.protection_active).length,
+    maintenance_due_count: maintenanceDueCount,
+    monthly_investment: monthlyFromPlans,
+  };
+}
 
 export default function ClientDashboardPage() {
   const navigate = useNavigate();
   const { user } = useDemoAuth();
 
-  const { data, isLoading, isFetching, refetch } = useQuery({
+  const { data, isLoading, isFetching, isError, error, refetch } = useQuery({
     queryKey: ['client-dashboard'],
     queryFn: () => hvacService.getClientDashboard(),
+    retry: 1,
   });
 
-  const stats = data?.stats;
+  const equipments = data?.equipments ?? [];
+  const derived = useMemo(() => deriveDashboardStats(equipments), [equipments]);
+
+  const displayName = resolveClientDisplayName(data?.customer, user);
+  const stats = data?.stats ?? (equipments.length > 0 ? derived : null);
+
+  const equipmentsCount = stats?.equipments_count ?? equipments.length;
+  const protectionCount = stats?.protection_active_count ?? derived.protection_active_count;
+  const maintenanceDueCount = stats?.maintenance_due_count ?? derived.maintenance_due_count;
+  const monthlyInvestment = stats?.monthly_investment ?? derived.monthly_investment;
+
+  const errorMessage =
+    error instanceof Error ? error.message : 'No se pudo cargar tu información.';
 
   return (
     <div className="space-y-6 pb-24 md:pb-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Snowflake className="h-6 w-6 text-primary" />
+            <Snowflake className="h-6 w-6 text-primary shrink-0" />
             Mis equipos
           </h1>
           <p className="text-sm text-muted-foreground">
-            Hola, {data?.customer?.name ?? user?.name}. Resumen de tus equipos vinculados.
+            {displayName ? (
+              <>
+                Hola, <span className="font-semibold text-foreground">{displayName}</span>. Resumen de tus
+                equipos vinculados.
+              </>
+            ) : (
+              'Resumen de tus equipos vinculados.'
+            )}
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={() => void refetch()} disabled={isFetching}>
           {isFetching ? 'Actualizando…' : 'Actualizar'}
         </Button>
       </div>
+
+      {isError ? (
+        <Card className="border-destructive/40 bg-destructive/5">
+          <CardContent className="py-4 space-y-3">
+            <p className="text-sm text-destructive">{errorMessage}</p>
+            <Button variant="outline" size="sm" onClick={() => void refetch()}>
+              Reintentar
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -51,7 +107,7 @@ export default function ClientDashboardPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Equipos</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{stats?.equipments_count ?? 0}</p>
+              <p className="text-3xl font-bold">{equipmentsCount}</p>
             </CardContent>
           </Card>
           <Card>
@@ -61,7 +117,7 @@ export default function ClientDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{stats?.protection_active_count ?? 0}</p>
+              <p className="text-3xl font-bold">{protectionCount}</p>
             </CardContent>
           </Card>
           <Card>
@@ -71,7 +127,7 @@ export default function ClientDashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{stats?.maintenance_due_count ?? 0}</p>
+              <p className="text-3xl font-bold">{maintenanceDueCount}</p>
             </CardContent>
           </Card>
           <Card>
@@ -79,7 +135,7 @@ export default function ClientDashboardPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Inversión mensual</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">${(stats?.monthly_investment ?? 0).toFixed(0)}</p>
+              <p className="text-3xl font-bold">${monthlyInvestment.toFixed(0)}</p>
             </CardContent>
           </Card>
         </div>
@@ -97,11 +153,11 @@ export default function ClientDashboardPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          {!isLoading && (data?.equipments?.length ?? 0) === 0 ? (
+          {!isLoading && equipments.length === 0 ? (
             <p className="text-sm text-muted-foreground">No tienes equipos vinculados aún.</p>
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
-              {(data?.equipments ?? []).map((item) => (
+              {equipments.map((item) => (
                 <HvacEquipmentSummaryCard
                   key={item.id}
                   item={item}

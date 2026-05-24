@@ -12,6 +12,8 @@ interface ValidatedInputProps<T extends FieldValues> {
   placeholder?: string;
   type?: string;
   step?: string;
+  maxLength?: number;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>['inputMode'];
   required?: boolean;
 }
 
@@ -22,6 +24,8 @@ export function ValidatedInput<T extends FieldValues>({
   placeholder,
   type = 'text',
   step,
+  maxLength,
+  inputMode,
   required = false,
 }: ValidatedInputProps<T>) {
   return (
@@ -38,8 +42,11 @@ export function ValidatedInput<T extends FieldValues>({
               id={String(name)}
               type={type}
               step={step}
+              maxLength={maxLength}
+              inputMode={inputMode}
               placeholder={placeholder}
               {...field}
+              value={field.value ?? ''}
               className={cn(
                 error ? 'border-red-500 pr-10' : 'pr-10'
               )}

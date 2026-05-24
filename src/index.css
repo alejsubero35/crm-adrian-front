@@ -1,4 +1,4 @@
-/* Modern SaaS UI/UX Theme - Orange brand */
+/* Modern SaaS UI/UX Theme - Brand blue #000BC2 */
 /* Nunito loaded via @fontsource/nunito in main.tsx */
 @import './styles/modern-theme.css';
 
@@ -22,45 +22,45 @@
     --popover: 0 0% 100%;       /* white */
     --popover-foreground: 222 47% 11%;
 
-    --primary: 29 89% 53%;      /* #f17d1e */
+    --primary: 237 100% 38%;      /* #000BC2 */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --secondary: 26 83% 45%;
+    --secondary: 237 100% 31%;
     --secondary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --muted: 30 33% 95%;
+    --muted: 237 40% 96%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 29 89% 53%;       /* #f17d1e */
+    --accent: 237 100% 38%;       /* #000BC2 */
     --accent-foreground: 0 0% 100%; /* #FFFFFF */
 
     --destructive: 0 84.2% 60.2%; /* standard red */
     --destructive-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --border: 30 20% 87%;
-    --input: 30 20% 87%;
-    --ring: 29 89% 53%;
+    --border: 237 25% 87%;
+    --input: 237 25% 87%;
+    --ring: 237 100% 38%;
 
     /* Gradient colors for top bar (header) - configurable via Theme Customizer */
-    --topbar-from: #f17d1e;
-    --topbar-to: #ff9f4a;
+    --topbar-from: #000BC2;
+    --topbar-to: #3339E0;
 
     --radius: 0.5rem;
 
   /* Sidebar on light theme: black */
   --sidebar-background: 0 0% 0%;
   --sidebar-foreground: 0 0% 100%;   /* white text */
-  --sidebar-primary: 29 89% 53%;     /* #f17d1e highlights/icons */
+  --sidebar-primary: 237 100% 38%;     /* #000BC2 highlights/icons */
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 0 0% 10%;
-  --sidebar-accent-foreground: 29 89% 53%;
+  --sidebar-accent-foreground: 237 100% 38%;
   --sidebar-border: 0 0% 18%;
-  --sidebar-ring: 29 89% 53%;
+  --sidebar-ring: 237 100% 38%;
 
   /* Chart colors for Recharts */
-  --chart-1: 29 89% 53%;
-  --chart-2: 26 83% 45%;
-  --chart-3: 35 95% 55%;
+  --chart-1: 237 100% 38%;
+  --chart-2: 237 85% 52%;
+  --chart-3: 237 70% 65%;
   --chart-4: 0 0% 0%;
   --chart-5: 0 84.2% 60.2%;    /* red */
   }
@@ -75,16 +75,16 @@
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --primary: 29 89% 53%;      /* #f17d1e */
+    --primary: 237 100% 38%;      /* #000BC2 */
     --primary-foreground: 0 0% 100%; /* #FFFFFF */
 
-    --secondary: 26 83% 45%;
+    --secondary: 237 100% 31%;
     --secondary-foreground: 0 0% 100%; /* #FFFFFF */
 
     --muted: 0 0% 18%;
     --muted-foreground: 0 0% 85%; /* lighter version of foreground */
 
-    --accent: 29 89% 53%;
+    --accent: 237 100% 38%;
     --accent-foreground: 0 0% 100%; /* #FFFFFF */
 
     --destructive: 0 62.8% 30.6%;
@@ -92,17 +92,17 @@
 
     --border: 0 0% 22%;
     --input: 0 0% 22%;
-    --ring: 29 89% 53%;
+    --ring: 237 100% 38%;
 
     /* Dark theme: keep sidebar consistent with brand colors */
     --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 0 0% 100%;   /* white */
-    --sidebar-primary: 29 89% 53%;
+    --sidebar-primary: 237 100% 38%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 0 0% 10%;
-    --sidebar-accent-foreground: 29 89% 53%;
+    --sidebar-accent-foreground: 237 100% 38%;
     --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 29 89% 53%;
+    --sidebar-ring: 237 100% 38%;
   }
 }
 
@@ -192,7 +192,7 @@
   /* Brand gradient buttons (reusable across the app) */
   .btn-gradient-orange {
     @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
-    background-image: linear-gradient(135deg, #e8761e, #ffb347);
+    background-image: linear-gradient(135deg, #000BC2, #3339E0);
   }
    .btn-primary-old {
     @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
@@ -209,7 +209,7 @@
 
   .btn-orange-new {
     @apply inline-flex items-center justify-center font-semibold text-white shadow-sm transition-colors;
-    background-color: #E67800;
+    background-color: #000BC2;
   }
 
   .btn-red-new {
@@ -228,7 +228,7 @@
   }
 
   .btn-orange-new-hover:hover {
-    background-color: #E67800 !important;
+    background-color: #3339E0 !important;
   }
 
   .btn-gradient-red {
@@ -238,9 +238,9 @@
 
   /* Branded scrollbar for focused scroll areas (e.g. receipt modal) */
   .scrollbar-brand-orange {
-    /* Firefox: thin scrollbar with soft orange track/thumb */
+    /* Firefox: thin scrollbar with soft brand-blue track/thumb */
     scrollbar-width: thin;
-    scrollbar-color: #f59e57 #fff7ed;
+    scrollbar-color: #3339E0 #eef0ff;
   }
 
   .scrollbar-brand-orange::-webkit-scrollbar {
@@ -248,18 +248,18 @@
   }
 
   .scrollbar-brand-orange::-webkit-scrollbar-track {
-    background: #fff7ed; /* soft orange background */
+    background: #eef0ff;
     border-radius: 9999px;
   }
 
   .scrollbar-brand-orange::-webkit-scrollbar-thumb {
     border-radius: 9999px;
-    background-image: linear-gradient(180deg, #f59e57, #f97316);
-    border: 2px solid #fff7ed; /* inner pill effect */
+    background-image: linear-gradient(180deg, #3339E0, #000BC2);
+    border: 2px solid #eef0ff; /* inner pill effect */
   }
 
   .scrollbar-brand-orange::-webkit-scrollbar-thumb:hover {
-    background-image: linear-gradient(180deg, #ea580c, #c2410c);
+    background-image: linear-gradient(180deg, #000BC2, #00099A);
   }
 
   /* Minimal scrollbar: transparent track, only a thin thumb */
@@ -456,7 +456,7 @@
   }
 
   /* Colores de panel - Marca */
-  .panel-indicator-orange { @apply bg-gradient-to-b from-orange-400 via-orange-500 to-orange-600; }
+  .panel-indicator-orange { @apply bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700; }
   .panel-indicator-blue { @apply bg-gradient-to-b from-blue-500 via-blue-600 to-blue-700; }
   .panel-indicator-navy { background: linear-gradient(to bottom, #1B5DB0, #103B73, #0A2647); }
   

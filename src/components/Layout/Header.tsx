@@ -444,7 +444,7 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
-                      className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-white shadow-sm border border-transparent bg-gradient-to-br from-amber-400 via-amber-300 to-orange-300 hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300/70"
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-xl text-white shadow-sm border border-transparent bg-gradient-to-br from-[#000BC2] via-[#222DE4] to-[#3339E0] hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/70"
                       onClick={() => setLanguageMenuOpen((open) => !open)}
                     >
                       {language === "en" && (
@@ -477,8 +477,8 @@ export function Header() {
                     <DropdownMenuItem
                       onClick={() => setLanguage("es")}
                       className={[
-                        "flex items-center justify-between gap-2 text-gray-700 data-[highlighted]:bg-[#FFE7D6] data-[highlighted]:text-amber-800",
-                        language === "es" ? "font-semibold text-amber-700 bg-[#FFE7D6]" : "",
+                        "flex items-center justify-between gap-2 text-gray-700 data-[highlighted]:bg-[#E8EAFF] data-[highlighted]:text-blue-800",
+                        language === "es" ? "font-semibold text-blue-700 bg-[#E8EAFF]" : "",
                       ].join(" ")}
                     >
                       <span className="flex items-center gap-2">
@@ -490,14 +490,14 @@ export function Header() {
                         <span>{t("layout.header.language.es")}</span>
                       </span>
                       {language === "es" && (
-                        <span className="h-2 w-2 rounded-full bg-amber-500" />
+                        <span className="h-2 w-2 rounded-full bg-brand-orange" />
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setLanguage("en")}
                       className={[
-                        "flex items-center justify-between gap-2 text-gray-700 data-[highlighted]:bg-[#FFE7D6] data-[highlighted]:text-amber-800",
-                        language === "en" ? "font-semibold text-amber-700 bg-[#FFE7D6]" : "",
+                        "flex items-center justify-between gap-2 text-gray-700 data-[highlighted]:bg-[#E8EAFF] data-[highlighted]:text-blue-800",
+                        language === "en" ? "font-semibold text-blue-700 bg-[#E8EAFF]" : "",
                       ].join(" ")}
                     >
                       <span className="flex items-center gap-2">
@@ -509,14 +509,14 @@ export function Header() {
                         <span>{t("layout.header.language.en")}</span>
                       </span>
                       {language === "en" && (
-                        <span className="h-2 w-2 rounded-full bg-amber-500" />
+                        <span className="h-2 w-2 rounded-full bg-brand-orange" />
                       )}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => setLanguage("pt")}
                       className={[
-                        "flex items-center justify-between gap-2 text-gray-700 data-[highlighted]:bg-[#FFE7D6] data-[highlighted]:text-amber-800",
-                        language === "pt" ? "font-semibold text-amber-700 bg-[#FFE7D6]" : "",
+                        "flex items-center justify-between gap-2 text-gray-700 data-[highlighted]:bg-[#E8EAFF] data-[highlighted]:text-blue-800",
+                        language === "pt" ? "font-semibold text-blue-700 bg-[#E8EAFF]" : "",
                       ].join(" ")}
                     >
                       <span className="flex items-center gap-2">
@@ -528,7 +528,7 @@ export function Header() {
                         <span>{t("layout.header.language.pt")}</span>
                       </span>
                       {language === "pt" && (
-                        <span className="h-2 w-2 rounded-full bg-amber-500" />
+                        <span className="h-2 w-2 rounded-full bg-brand-orange" />
                       )}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -618,7 +618,7 @@ export function Header() {
                 className="hidden sm:inline-flex items-center justify-center p-0 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
               >
                 <div className="relative">
-                  <div className="rounded-full p-[3px] bg-gradient-to-b from-amber-200 to-amber-300 shadow-sm">
+                  <div className="rounded-full p-[3px] bg-gradient-to-b from-blue-200 to-blue-400 shadow-sm">
                     <div className="rounded-full p-[2px] bg-white shadow-inner">
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="text-[10px] font-semibold text-neutral-600">{initials || "U"}</AvatarFallback>

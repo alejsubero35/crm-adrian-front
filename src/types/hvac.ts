@@ -22,6 +22,7 @@ export type Plan = {
   description?: string | null;
   maintenance_frequency_days: number;
   monthly_amount?: number;
+  fondo_de_cobertura?: number;
 };
 
 export type EquipmentDiagnosticApi = {
@@ -127,6 +128,9 @@ export type ClientEquipmentSummary = {
   plan_name?: string | null;
   installation_location?: string | null;
   monthly_amount?: number;
+  /** Saldo restante del Fondo de Cobertura Total (FCT). */
+  fct_remaining?: number;
+  fondo_de_cobertura?: number;
   protection_active?: boolean;
 };
 
@@ -189,6 +193,8 @@ export type CreateMaintenanceLogPayload = {
   photos_json?: string[];
   plate?: Partial<Record<string, string>>;
   diagnostic?: Partial<Record<string, string | boolean>>;
+  /** Costo de repuestos descontado del FCT del cliente. */
+  spare_parts_cost?: number;
 };
 
 export type QrItem = {

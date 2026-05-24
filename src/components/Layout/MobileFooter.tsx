@@ -37,7 +37,7 @@ export function MobileFooter() {
             onClick={() => navigate('/dashboard')}
             className="mx-1 flex flex-col items-center gap-1 px-3 py-1 text-[11px] transition-colors"
           >
-            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive('/dashboard') ? 'bg-orange-50' : ''}`}>
+            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive('/dashboard') ? 'bg-blue-50' : ''}`}>
               <Home className={`h-5 w-5 ${isActive('/dashboard') ? 'text-brand-orange' : 'text-gray-500'}`} />
             </div>
             <span className={`text-gray-500 ${isActive('/dashboard') ? 'font-extrabold' : 'font-normal'}`}>Inicio</span>
@@ -48,7 +48,7 @@ export function MobileFooter() {
             onClick={goToClients}
             className="mx-1 flex flex-col items-center gap-1 px-3 py-1 text-[11px] transition-colors"
           >
-            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive('/pos/clients') ? 'bg-orange-50' : ''}`}>
+            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive('/pos/clients') ? 'bg-blue-50' : ''}`}>
               <User className={`h-5 w-5 ${isActive('/pos/clients') ? 'text-brand-orange' : 'text-gray-500'}`} />
             </div>
             <span className={`text-gray-500 ${isActive('/pos/clients') ? 'font-extrabold' : 'font-normal'}`}>Clientes</span>
@@ -60,7 +60,7 @@ export function MobileFooter() {
             className="mx-1 flex flex-col items-center gap-0 text-[11px]"
             aria-label="TPV"
           >
-            <div className={`-mt-12 flex items-center justify-center h-16 w-16 rounded-full bg-brand-orange text-white shadow-[0_10px_22px_rgba(0,0,0,0.18)] ring-1 ring-orange-200/70 transition-colors hover:bg-brand-orange-2`}>
+            <div className={`-mt-12 flex items-center justify-center h-16 w-16 rounded-full bg-brand-orange text-white shadow-[0_10px_22px_rgba(0,11,194,0.25)] ring-1 ring-blue-200/70 transition-colors hover:bg-brand-orange-2`}>
               <Store className="h-7 w-7" />
             </div>
             {/* sin etiqueta para mantener el centro limpio */}
@@ -71,7 +71,7 @@ export function MobileFooter() {
             onClick={goToInventoryAdjustments}
             className="relative mx-1 flex flex-col items-center gap-1 px-3 py-1 text-[11px] transition-colors"
           >
-            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive('/ajustes-inventario') ? 'bg-orange-50' : ''}`}>
+            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive('/ajustes-inventario') ? 'bg-blue-50' : ''}`}>
               <SlidersHorizontal className={`h-5 w-5 ${isActive('/ajustes-inventario') ? 'text-brand-orange' : 'text-gray-500'}`} />
             </div>
             <span className={`text-gray-500 ${isActive('/ajustes-inventario') ? 'font-extrabold' : 'font-normal'}`}>Ajustes</span>
@@ -82,7 +82,7 @@ export function MobileFooter() {
             onClick={goToClosure}
             className="mx-1 flex flex-col items-center gap-1 px-3 py-1 text-[11px] transition-colors"
           >
-            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive(['/reports', '/reports/daily']) ? 'bg-orange-50' : ''}`}>
+            <div className={`h-8 w-12 rounded-full flex items-center justify-center ${isActive(['/reports', '/reports/daily']) ? 'bg-blue-50' : ''}`}>
               <Printer className={`h-5 w-5 ${isActive(['/reports', '/reports/daily']) ? 'text-brand-orange' : 'text-gray-500'}`} />
             </div>
             <span className={`text-gray-500 ${isActive(['/reports', '/reports/daily']) ? 'font-extrabold' : 'font-normal'}`}>Cierre</span>

@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => {
           display: 'standalone',
           orientation: 'portrait',
           background_color: '#FFFFFF',
-          theme_color: '#FF7A1A',
+          theme_color: '#000BC2',
           icons: [
             {
               src: `${publicBase}img/logo_solo.png`,

@@ -22,6 +22,10 @@ export const planSchema = z.object({
     .number({ invalid_type_error: 'Debe ser numerico' })
     .min(0, 'No puede ser negativo')
     .optional(),
+  fondo_de_cobertura: z.coerce
+    .number({ invalid_type_error: 'Debe ser numerico' })
+    .min(0, 'No puede ser negativo')
+    .optional(),
 });
 
 export const registerEquipmentSchema = z.object({
@@ -29,7 +33,11 @@ export const registerEquipmentSchema = z.object({
   plan_id: z.string().min(1, 'Selecciona un plan'),
   brand: z.string().min(1, 'Marca requerida'),
   model: z.string().min(1, 'Modelo requerido'),
-  serial_number: z.string().min(1, 'Serial requerido'),
+  serial_number: z
+    .string()
+    .trim()
+    .min(1, 'Serial requerido')
+    .max(120, 'El serial admite hasta 120 caracteres'),
   type: z.string().min(1, 'Tipo requerido'),
   capacity: z.string().min(1, 'Capacidad requerida'),
   refrigerant_type: z.string().min(1, 'Tipo de gas requerido'),
@@ -39,6 +47,10 @@ export const registerEquipmentSchema = z.object({
 export const maintenanceLogSchema = z.object({
   service_type: z.string().min(1, 'Tipo de servicio requerido'),
   description: z.string().optional(),
+  spare_parts_cost: z.coerce
+    .number({ invalid_type_error: 'Debe ser numerico' })
+    .min(0, 'No puede ser negativo')
+    .optional(),
 });
 
 const hvacOptionalString = z.union([z.string(), z.literal('')]).optional();

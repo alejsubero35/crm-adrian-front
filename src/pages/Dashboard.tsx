@@ -115,7 +115,7 @@ const Dashboard = () => {
 
   // colors used for the pie slices (matches visual example)
   const PIE_COLORS = isMobile
-    ? ['#FF7A1A', '#FF9A3D', '#FFC285', '#FFE0C2', '#FFB047', '#FF8F33']
+    ? ['#000BC2', '#3339E0', '#5B63FF', '#A8ADFF', '#4D52FF', '#1A22D4']
     : ['#4B6CB7', '#7ED957', '#FFCD4A', '#FF6B6B', '#7FB3D5', '#9B59B6'];
 
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -175,7 +175,7 @@ const Dashboard = () => {
 
   return (
     <div>
-      <div className="p-6 min-h-screen bg-orange-50/50 md:bg-gray-50 pb-24 lg:pb-32">
+      <div className="p-6 min-h-screen bg-blue-50/50 md:bg-gray-50 pb-24 lg:pb-32">
         <div className="max-w-7xl mx-auto mt-4 lg:mt-6 pb-32">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -216,8 +216,8 @@ const Dashboard = () => {
               value={stats ? `${(stats.ordersToday * 0.036).toFixed(2)}m` : '1.72m'}
               trend={'+2.8%'}
               icon={<ShoppingCart className="w-6 h-6" />}
-              gradient="from-amber-50 via-amber-100 to-amber-200"
-              lineColor="#FF7A1A"
+              gradient="from-blue-50 via-blue-100 to-blue-200"
+              lineColor="#000BC2"
             />
             <MetricCard
               title={t('metrics.messages')}
@@ -230,14 +230,14 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <Card className="lg:col-span-2 p-4 border-orange-100/70 md:border-border">
+            <Card className="lg:col-span-2 p-4 border-blue-100/70 md:border-border">
               <h3 className="text-lg font-semibold mb-4 text-brand-orange md:text-foreground">{t('sections.productsUnitsSold')}</h3>
               <SimpleChart labels={chartData.labels} series={chartData.series} />
 
               <div className="mt-6">
                 <h4 className="text-md font-medium mb-2 text-brand-orange md:text-foreground">{t('sections.salesLastWeek')}</h4>
                 <ChartContainer
-                  config={{ sales: { label: t('labels.sales'), color: isMobile ? '#FF7A1A' : 'var(--blue-500)' } }}
+                  config={{ sales: { label: t('labels.sales'), color: isMobile ? '#000BC2' : 'var(--blue-500)' } }}
                   className="w-full h-56"
                 >
                   <Recharts.LineChart data={timeSeries}>
@@ -258,7 +258,7 @@ const Dashboard = () => {
               </div>
             </Card>
 
-            <Card className="p-4 border-orange-100/70 md:border-border">
+            <Card className="p-4 border-blue-100/70 md:border-border">
               <h3 className="text-lg font-semibold mb-4 text-brand-orange md:text-foreground">{t('sections.recurringClients')}</h3>
               <ul className="space-y-3">
                 {recurring?.map((r: RecurringClient) => (
@@ -319,13 +319,13 @@ const Dashboard = () => {
 
           {/* Recent sales - scrollable with simulated infinite loading */}
           <div className="mt-6">
-            <Card className="p-4 border-orange-100/70 md:border-border">
+            <Card className="p-4 border-blue-100/70 md:border-border">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-semibold text-brand-orange md:text-foreground">{t('sections.recentSales')}</h3>
                 <div className="text-sm text-gray-500">{t('sections.lastSixSales')}</div>
               </div>
 
-              <div ref={recentSalesListRef} className="h-64 overflow-auto border border-orange-100/70 md:border-border rounded-md p-2 bg-white">
+              <div ref={recentSalesListRef} className="h-64 overflow-auto border border-blue-100/70 md:border-border rounded-md p-2 bg-white">
                 {allRecent.length === 0 && recentInvoicesLoading && (
                   <div className="text-center text-sm text-gray-500 py-8">{tc('common.loading')}</div>
                 )}
@@ -335,7 +335,7 @@ const Dashboard = () => {
 
                 <ul className="space-y-2">
                   {allRecent.map(s => (
-                    <li key={s.id} className="flex items-center justify-between p-2 rounded hover:bg-orange-50 md:hover:bg-gray-50">
+                    <li key={s.id} className="flex items-center justify-between p-2 rounded hover:bg-blue-50 md:hover:bg-gray-50">
                       <div>
                         <div className="font-medium">{s.id} • {s.customer ?? t('labels.finalConsumer')}</div>
                         <div className="text-xs text-gray-500">{new Date(s.date).toLocaleString()}</div>

@@ -10,7 +10,8 @@ import type { ClientPortalResponse, EquipmentDetails } from '@/types/hvac';
 import { cn } from '@/lib/utils';
 import { listHvacDiagnosticMeasurements } from '@/utils/hvacDiagnosticFields';
 import { HvacEquipmentSummaryCard } from '@/components/hvac/HvacEquipmentSummaryCard';
-import { formatMaintenanceShort } from '@/components/hvac/hvacEquipmentCardUtils';
+import { formatMaintenanceShort, resolveClientDisplayName } from '@/components/hvac/hvacEquipmentCardUtils';
+import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 
 const statusLabels: Record<string, string> = {
   operational: 'Operativo',
@@ -165,6 +166,7 @@ function EquipmentDetailPanel({ detail }: { detail: EquipmentDetails }) {
 }
 
 export function HvacClientPortalView({ scannedQrUuid }: Props) {
+  const { user } = useDemoAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [portal, setPortal] = useState<ClientPortalResponse | null>(null);
@@ -230,17 +232,33 @@ export function HvacClientPortalView({ scannedQrUuid }: Props) {
   }
 
   const scannedEquipment = portal.equipments.find((e) => e.qr_uuid === scannedQrUuid);
+  const clientName = resolveClientDisplayName(portal.customer, user);
 
   return (
     <div className="space-y-4">
+      <Card className="border-primary/25 bg-primary/5 shadow-sm">
+        <CardContent className="py-4">
+          <p className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+            {clientName ? (
+              <>
+                Hola, <span className="text-primary">{clientName}</span>.
+              </>
+            ) : (
+              'Hola.'
+            )}
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Fondo de Cobertura Total (FCT) según tu plan de protección.
+            {scannedEquipment ? ' El equipo escaneado aparece resaltado.' : ' Selecciona un equipo para ver el detalle.'}
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="space-y-1">
         <h2 className="text-xl font-bold flex items-center gap-2">
           <Snowflake className="h-5 w-5 text-primary" />
           Mis equipos
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Hola, {portal.customer.name}. {scannedEquipment ? 'Equipo detectado por QR resaltado.' : 'Selecciona un equipo.'}
-        </p>
       </div>
 
       {portal.equipments.length === 0 ? (

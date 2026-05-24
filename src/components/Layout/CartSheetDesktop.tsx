@@ -356,7 +356,7 @@ export const CartSheetDesktop: React.FC<CartSheetDesktopProps> = ({
               className={`relative mx-auto max-w-3xl overflow-hidden rounded-2xl border shadow-sm p-4 md:p-5 transition-colors
                 ${canFinalize
                   ? 'bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-100'
-                  : 'bg-gradient-to-br from-amber-50 to-orange-50 border-orange-100'}`}
+                  : 'bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100'}`}
             >
               {/* patrón de puntos */}
               <div className="pointer-events-none absolute inset-0 opacity-50 [background:radial-gradient(theme(colors.white)/.7_1px,transparent_1px)] [background-size:12px_12px]" />
@@ -367,7 +367,7 @@ export const CartSheetDesktop: React.FC<CartSheetDesktopProps> = ({
                   className={`inline-flex flex-wrap items-center gap-2 rounded-xl px-3 py-2 font-semibold text-white text-sm md:text-base shadow-sm
                     ${canFinalize
                       ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 ring-1 ring-emerald-400/40'
-                      : 'bg-gradient-to-r from-[#f97316] to-[#ea580c] ring-1 ring-orange-400/40'}`}
+                      : 'bg-gradient-to-r from-[#000BC2] to-[#3339E0] ring-1 ring-blue-400/40'}`}
                   aria-label="Resumen de pago"
                 >
                   <Wallet className="w-4 h-4 opacity-90" />
@@ -626,12 +626,12 @@ export const CartSheetDesktop: React.FC<CartSheetDesktopProps> = ({
                     <h4 className="text-base font-bold text-gray-700 mb-2">{t('paymentsHeading')}</h4>
                     <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto pr-1 scrollbar-brand-orange">
                       {partials.map(p => (
-                        <div key={p.id} className="px-3 py-1 rounded-full text-sm flex items-center gap-2 border font-bold bg-orange-50 border-orange-200 text-orange-700 shadow-sm">
+                        <div key={p.id} className="px-3 py-1 rounded-full text-sm flex items-center gap-2 border font-bold bg-blue-50 border-blue-200 text-blue-700 shadow-sm">
                           <span>{p.method.toUpperCase()} {p.method==='usd' ? '$' : 'Bs'} {p.amount.toFixed(2)}</span>
                           <button
                             type="button"
                             onClick={()=> removePartial(p.id)}
-                            className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white text-orange-600 border border-orange-200 hover:bg-orange-500 hover:text-white transition-colors"
+                            className="ml-1 inline-flex items-center justify-center w-5 h-5 rounded-full bg-white text-blue-600 border border-blue-200 hover:bg-brand-orange hover:text-white transition-colors"
                             aria-label="Eliminar pago"
                           >×</button>
                         </div>

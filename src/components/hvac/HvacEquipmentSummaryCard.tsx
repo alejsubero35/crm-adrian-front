@@ -13,7 +13,7 @@ type Props = {
 
 export function HvacEquipmentSummaryCard({ item, isActive = false, isScanned = false, onSelect }: Props) {
   const { primary, secondary } = splitInstallationLocation(item.installation_location);
-  const monthlyAmount = item.monthly_amount ?? 0;
+  const fctRemaining = item.fct_remaining ?? 0;
   const protectionActive = item.protection_active ?? false;
 
   return (
@@ -30,7 +30,7 @@ export function HvacEquipmentSummaryCard({ item, isActive = false, isScanned = f
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         <p className="text-lg font-bold leading-tight truncate">{primary}</p>
         <p className="text-lg font-bold leading-tight text-right truncate">
-          FCT: {monthlyAmount.toFixed(0)} $
+          FCT: {fctRemaining.toFixed(0)} $
         </p>
 
         {secondary ? (

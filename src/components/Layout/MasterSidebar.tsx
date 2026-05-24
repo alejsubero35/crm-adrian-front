@@ -143,13 +143,6 @@ const defaultSidebarItems: SidebarItem[] = [
         requiredPermissions: ['users.view'],
       }, */
       {
-        id: 'theme-settings',
-        label: 'Apariencia',
-        icon: Gear,
-        href: '/settings/theme',
-        requiredPermissions: ['users.view'],
-      },
-      {
         id: 'rbac-settings',
         label: 'Permisos y Roles',
         icon: Gear,

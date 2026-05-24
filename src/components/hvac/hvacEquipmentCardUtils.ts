@@ -8,6 +8,42 @@ export function formatMaintenanceShort(value?: string | null) {
   return `${day}/${month}/${year}`;
 }
 
+/** Saludo del portal cliente: BIENVENIDO (A) [nombre]. */
+export function formatClientWelcome(customerName: string): string {
+  const name = customerName.trim();
+  if (!name) return 'BIENVENIDO (A)';
+  return `BIENVENIDO (A) ${name.toUpperCase()}`;
+}
+
+type ClientNameSource = {
+  name?: string | null;
+  customer_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  username?: string | null;
+  email?: string | null;
+};
+
+/** Nombre visible del cliente (ficha CRM > usuario portal > partes del nombre). */
+export function resolveClientDisplayName(
+  customerFromApi?: { name?: string | null } | null,
+  user?: ClientNameSource | null
+): string {
+  const fromCustomer = customerFromApi?.name?.trim();
+  if (fromCustomer) return fromCustomer;
+
+  const fromUserCustomer = user?.customer_name?.trim();
+  if (fromUserCustomer) return fromUserCustomer;
+
+  const fromUserName = user?.name?.trim();
+  if (fromUserName) return fromUserName;
+
+  const built = [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim();
+  if (built) return built;
+
+  return user?.username?.trim() || user?.email?.trim() || '';
+}
+
 export function splitInstallationLocation(location?: string | null) {
   const trimmed = location?.trim();
   if (!trimmed) {

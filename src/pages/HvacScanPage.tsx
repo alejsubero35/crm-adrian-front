@@ -20,6 +20,7 @@ import {
   registerEquipmentSchema,
   type RegisterEquipmentFormData,
 } from '@/validations/hvac.schema';
+import { getApiErrorMessage, getApiFieldErrors } from '@/lib/apiErrors';
 import { listHvacDiagnosticMeasurements } from '@/utils/hvacDiagnosticFields';
 import { HvacClientPortalView } from '@/components/hvac/HvacClientPortalView';
 
@@ -230,22 +231,28 @@ export default function HvacScanPage() {
         qr_uuid: uuid,
         plan_id: plan.id,
         customer_id: customerId,
-        brand: values.brand,
-        model: values.model,
-        serial_number: values.serial_number,
-        type: values.type,
-        capacity: values.capacity,
-        refrigerant_type: values.refrigerant_type,
-        installation_location: values.installation_location,
+        brand: values.brand.trim(),
+        model: values.model.trim(),
+        serial_number: values.serial_number.trim(),
+        type: values.type.trim(),
+        capacity: values.capacity.trim(),
+        refrigerant_type: values.refrigerant_type.trim(),
+        installation_location: values.installation_location.trim(),
       });
       toast({ variant: 'success', title: 'Equipo vinculado', description: 'Redirigiendo al dashboard del equipo...' });
       await fetchScan();
       navigate(`/scan/${uuid}`, { replace: true });
     } catch (error) {
+      const fieldErrors = getApiFieldErrors(error);
+      if (fieldErrors) {
+        for (const [field, message] of Object.entries(fieldErrors)) {
+          registerForm.setError(field as keyof RegisterEquipmentFormData, { message });
+        }
+      }
       toast({
         variant: 'destructive',
         title: 'No se pudo vincular',
-        description: error instanceof Error ? error.message : 'Revisa los campos e intenta de nuevo.',
+        description: getApiErrorMessage(error, 'Revisa los campos e intenta de nuevo.'),
       });
     } finally {
       setRegistering(false);
@@ -289,27 +296,31 @@ export default function HvacScanPage() {
     return `${day}-${month}-${year} ${hours12}:${minutes} ${period}`;
   };
 
+  const showClientPortal = isClientRole && uuid && !isAvailable;
+  const showStaffHeader = !showClientPortal;
+
   return (
     <div className="space-y-4 pb-24 md:pb-6">
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Escaneo QR HVAC</h1>
-          <p className="text-sm text-muted-foreground">UUID: {uuid}</p>
+      {showStaffHeader ? (
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold">{uuid ? 'Escaneo QR HVAC' : 'Escanear QR HVAC'}</h1>
+            {uuid ? <p className="text-sm text-muted-foreground">UUID: {uuid}</p> : null}
+          </div>
+          <div className="hidden md:flex md:flex-col md:items-end md:gap-2">
+            {isAvailable && canManageEquipment ? (
+              <Button onClick={registerForm.handleSubmit(handleRegister)} disabled={registering}>
+                {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
+              </Button>
+            ) : !isAvailable && canCreateMaintenance ? (
+              <Button onClick={() => navigate(`/scan/${uuid}/registrar-servicio`)}>
+                <Wrench className="h-4 w-4 mr-2" />
+                Registrar nuevo servicio
+              </Button>
+            ) : null}
+          </div>
         </div>
-        <div className="hidden md:flex md:flex-col md:items-end md:gap-2">
-          {isAvailable && canManageEquipment ? (
-            <Button onClick={registerForm.handleSubmit(handleRegister)} disabled={registering}>
-              {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
-            </Button>
-          ) : !isAvailable && canCreateMaintenance ? (
-            <Button onClick={() => navigate(`/scan/${uuid}/registrar-servicio`)}>
-              <Wrench className="h-4 w-4 mr-2" />
-              Registrar nuevo servicio
-            </Button>
-          ) : null}
-          {!isAvailable && isClientRole && uuid ? <Badge variant="secondary">Portal cliente</Badge> : null}
-        </div>
-      </div>
+      ) : null}
 
       {showMobileScanner ? (
         <Card>
@@ -439,7 +450,16 @@ export default function HvacScanPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <ValidatedInput label="Marca" name="brand" control={registerForm.control} required />
                 <ValidatedInput label="Modelo" name="model" control={registerForm.control} required />
-                <ValidatedInput label="Serial" name="serial_number" control={registerForm.control} required />
+                <ValidatedInput
+                  label="Serial"
+                  name="serial_number"
+                  control={registerForm.control}
+                  required
+                  type="text"
+                  inputMode="text"
+                  maxLength={120}
+                  placeholder="Ej. 1234567890 o alfanumérico"
+                />
                 <ValidatedInput label="Tipo de equipo" name="type" control={registerForm.control} required />
                 <ValidatedInput label="Capacidad" name="capacity" control={registerForm.control} required />
                 <ValidatedInput label="Tipo de gas" name="refrigerant_type" control={registerForm.control} required />
