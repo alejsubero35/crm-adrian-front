@@ -24,7 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { hvacService } from '@/services/hvac.service';
-import { hvacMaintenanceRegisterSchema, type HvacMaintenanceRegisterFormData } from '@/validations/hvac.schema';
+import { buildHvacMaintenanceRegisterSchema, type HvacMaintenanceRegisterFormData } from '@/validations/hvac.schema';
 import type { EquipmentDetails } from '@/types/hvac';
 import {
   HVAC_COMPARE_PAIR_CAPACITORS,
@@ -65,12 +65,26 @@ export default function HvacMaintenanceRegisterPage() {
   const isAdmin = hasRole('admin');
   const defaults = useMemo(() => emptyHvacMaintenanceFieldDefaults(), []);
 
+  const { data: scan, isLoading, isError } = useQuery({
+    queryKey: ['hvac-scan', uuid],
+    queryFn: () => hvacService.scanQr(uuid),
+    enabled: Boolean(uuid),
+  });
+
+  const fctAvailable = isEquipmentDetails(scan) ? (scan.fct_remaining ?? 0) : null;
+
+  const registerSchema = useMemo(
+    () => buildHvacMaintenanceRegisterSchema(fctAvailable),
+    [fctAvailable]
+  );
+
   const form = useForm<HvacMaintenanceRegisterFormData>({
-    resolver: zodResolver(hvacMaintenanceRegisterSchema),
+    resolver: async (values, context, options) =>
+      zodResolver(registerSchema)(values, context, options),
     defaultValues: defaults as unknown as HvacMaintenanceRegisterFormData,
   });
 
-  const { isDirty } = useFormState({ control: form.control });
+  const { isDirty, errors } = useFormState({ control: form.control });
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [leaveTo, setLeaveTo] = useState<string | null>(null);
 
@@ -94,12 +108,6 @@ export default function HvacMaintenanceRegisterPage() {
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [isDirty]);
-
-  const { data: scan, isLoading, isError } = useQuery({
-    queryKey: ['hvac-scan', uuid],
-    queryFn: () => hvacService.scanQr(uuid),
-    enabled: Boolean(uuid),
-  });
 
   const { data: maintenanceTypes = [] } = useQuery({
     queryKey: ['maintenance-types'],
@@ -144,17 +152,55 @@ export default function HvacMaintenanceRegisterPage() {
     [equipmentRecord, isAdmin]
   );
 
-  const fctAvailable = isEquipmentDetails(scan) ? (scan.fct_remaining ?? 0) : null;
-
   const maintenanceTypeId = useWatch({ control: form.control, name: 'maintenance_type_id' }) ?? '';
   const serviceType = useWatch({ control: form.control, name: 'service_type' }) ?? '';
+  const sparePartsCostRaw = useWatch({ control: form.control, name: 'spare_parts_cost' }) ?? '';
   const allFieldValues = useWatch({ control: form.control }) as Record<string, unknown> | undefined;
+
+  useEffect(() => {
+    const raw = String(sparePartsCostRaw ?? '').trim();
+    if (raw === '') {
+      if (form.formState.errors.spare_parts_cost?.type === 'fct') {
+        form.clearErrors('spare_parts_cost');
+      }
+      return;
+    }
+
+    const amount = parseMoneyAmount(sparePartsCostRaw);
+    if (amount == null || fctAvailable == null) {
+      if (form.formState.errors.spare_parts_cost?.type === 'fct') {
+        form.clearErrors('spare_parts_cost');
+      }
+      return;
+    }
+
+    if (fctAvailable <= 0) {
+      form.setError('spare_parts_cost', {
+        type: 'fct',
+        message: 'No hay saldo FCT disponible para descontar.',
+      });
+      return;
+    }
+
+    if (exceedsFctAvailable(amount, fctAvailable)) {
+      form.setError('spare_parts_cost', {
+        type: 'fct',
+        message: `El monto (${formatMoneyUsd(amount)} USD) supera el FCT disponible (${formatMoneyUsd(fctAvailable)} USD).`,
+      });
+      return;
+    }
+
+    if (form.formState.errors.spare_parts_cost?.type === 'fct') {
+      form.clearErrors('spare_parts_cost');
+    }
+  }, [sparePartsCostRaw, fctAvailable, form]);
 
   const canSubmit =
     typeof maintenanceTypeId === 'string' &&
     maintenanceTypeId.trim().length > 0 &&
     typeof serviceType === 'string' &&
     serviceType.trim().length > 0 &&
+    !errors.spare_parts_cost &&
     !form.formState.isSubmitting;
 
   const tabProgress = useMemo(() => {

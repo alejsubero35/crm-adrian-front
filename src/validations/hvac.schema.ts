@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { roundMoney } from '@/lib/moneyAmount';
+import { exceedsFctAvailable, formatMoneyUsd, parseMoneyAmount, roundMoney } from '@/lib/moneyAmount';
 import { HVAC_MEASURED_FIELD_KEYS, HVAC_PLATE_FIELD_KEYS } from '@/utils/hvacDiagnosticFields';
 
 export const customerSchema = z.object({
@@ -82,6 +82,33 @@ const measuredFieldsShape = Object.fromEntries(
 
 /** Formulario completo: servicio + placa + mediciones (misma forma plana que el payload armado al enviar). */
 export const hvacMaintenanceRegisterSchema = maintenanceLogSchema.merge(z.object(plateFieldsShape)).merge(z.object(measuredFieldsShape));
+
+/** Incluye tope FCT según saldo disponible del equipo escaneado. */
+export function buildHvacMaintenanceRegisterSchema(fctAvailable?: number | null) {
+  return hvacMaintenanceRegisterSchema.superRefine((data, ctx) => {
+    const amount = parseMoneyAmount(data.spare_parts_cost);
+    if (amount == null || fctAvailable == null) {
+      return;
+    }
+
+    if (fctAvailable <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'No hay saldo FCT disponible para descontar.',
+        path: ['spare_parts_cost'],
+      });
+      return;
+    }
+
+    if (exceedsFctAvailable(amount, fctAvailable)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `El monto (${formatMoneyUsd(amount)} USD) supera el FCT disponible (${formatMoneyUsd(fctAvailable)} USD).`,
+        path: ['spare_parts_cost'],
+      });
+    }
+  });
+}
 
 export type HvacMaintenanceRegisterFormData = z.infer<typeof hvacMaintenanceRegisterSchema>;
 
