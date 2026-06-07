@@ -8,6 +8,7 @@ import type {
   CreateMaintenanceLogPayload,
   ClientPortalResponse,
   ClientDashboardResponse,
+  MaintenanceType,
   QrBatch,
   QrItem,
   Subscription,
@@ -119,6 +120,11 @@ export const hvacService = {
 
   async createMaintenanceLog(payload: CreateMaintenanceLogPayload) {
     return http.post('/maintenance-logs', payload);
+  },
+
+  async getMaintenanceTypes() {
+    const response = await http.get<MaintenanceType[] | PaginatedResponse<MaintenanceType>>('/maintenance-types');
+    return unwrapList(response);
   },
 
   async getQrs() {

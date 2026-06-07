@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { roundMoney } from '@/lib/moneyAmount';
 import { HVAC_MEASURED_FIELD_KEYS, HVAC_PLATE_FIELD_KEYS } from '@/utils/hvacDiagnosticFields';
 
 export const customerSchema = z.object({
@@ -45,12 +46,22 @@ export const registerEquipmentSchema = z.object({
 });
 
 export const maintenanceLogSchema = z.object({
+  maintenance_type_id: z.string().min(1, 'Selecciona el tipo de mantenimiento'),
   service_type: z.string().min(1, 'Tipo de servicio requerido'),
   description: z.string().optional(),
-  spare_parts_cost: z.coerce
-    .number({ invalid_type_error: 'Debe ser numerico' })
-    .min(0, 'No puede ser negativo')
-    .optional(),
+  spare_parts_cost: z.preprocess(
+    (value) => {
+      if (value === undefined || value === null || value === '') return undefined;
+      const raw = typeof value === 'number' ? value : String(value).trim().replace(',', '.');
+      const num = Number(raw);
+      if (!Number.isFinite(num)) return value;
+      return roundMoney(num);
+    },
+    z
+      .number({ invalid_type_error: 'Debe ser numerico' })
+      .min(0, 'No puede ser negativo')
+      .optional()
+  ),
 });
 
 const hvacOptionalString = z.union([z.string(), z.literal('')]).optional();

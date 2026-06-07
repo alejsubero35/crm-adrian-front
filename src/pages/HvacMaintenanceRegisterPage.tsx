@@ -7,6 +7,7 @@ import { ArrowLeft, CircuitBoard, Thermometer, Zap } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ValidatedInput } from '@/components/ui/ValidatedInput';
+import { ValidatedSelect } from '@/components/ui/ValidatedSelect';
 import { ValidatedTextarea } from '@/components/ui/ValidatedTextarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -43,6 +44,9 @@ import {
   isOverNominalOutOfTolerance,
 } from '@/utils/hvacDiagnosticCompare';
 import { cn } from '@/lib/utils';
+import { getApiErrorMessage, getApiFieldErrors } from '@/lib/apiErrors';
+import { waitForDomSettled } from '@/lib/domTiming';
+import { exceedsFctAvailable, formatMoneyUsd, parseMoneyAmount } from '@/lib/moneyAmount';
 import { PlateMeasuredPairRow } from '@/components/hvac/PlateMeasuredPairRow';
 
 function isEquipmentDetails(scan: unknown): scan is EquipmentDetails {
@@ -97,6 +101,17 @@ export default function HvacMaintenanceRegisterPage() {
     enabled: Boolean(uuid),
   });
 
+  const { data: maintenanceTypes = [] } = useQuery({
+    queryKey: ['maintenance-types'],
+    queryFn: () => hvacService.getMaintenanceTypes(),
+    enabled: canCreateMaintenance,
+  });
+
+  const maintenanceTypeOptions = useMemo(
+    () => maintenanceTypes.map((type) => ({ value: String(type.id), label: type.name })),
+    [maintenanceTypes]
+  );
+
   const equipmentKey = useMemo(() => {
     if (!isEquipmentDetails(scan)) return null;
     return `${scan.qr_uuid}:${scan.equipment?.id ?? ''}`;
@@ -106,6 +121,7 @@ export default function HvacMaintenanceRegisterPage() {
     if (!equipmentKey || !isEquipmentDetails(scan)) return;
     const eq = scan.equipment as Record<string, unknown>;
     const next: Record<string, string> = { ...emptyHvacMaintenanceFieldDefaults() };
+    next.maintenance_type_id = '';
     next.service_type = '';
     next.description = '';
     for (const k of Object.keys(next)) {
@@ -128,10 +144,15 @@ export default function HvacMaintenanceRegisterPage() {
     [equipmentRecord, isAdmin]
   );
 
+  const fctAvailable = isEquipmentDetails(scan) ? (scan.fct_remaining ?? 0) : null;
+
+  const maintenanceTypeId = useWatch({ control: form.control, name: 'maintenance_type_id' }) ?? '';
   const serviceType = useWatch({ control: form.control, name: 'service_type' }) ?? '';
   const allFieldValues = useWatch({ control: form.control }) as Record<string, unknown> | undefined;
 
   const canSubmit =
+    typeof maintenanceTypeId === 'string' &&
+    maintenanceTypeId.trim().length > 0 &&
     typeof serviceType === 'string' &&
     serviceType.trim().length > 0 &&
     !form.formState.isSubmitting;
@@ -176,14 +197,26 @@ export default function HvacMaintenanceRegisterPage() {
     const diagnosticPayload = buildDiagnosticPayload(values as unknown as Record<string, unknown>);
 
     try {
-      const spareParts = values.spare_parts_cost;
-      const sparePartsCost =
-        spareParts !== undefined && spareParts !== '' && Number(spareParts) > 0
-          ? Number(spareParts)
-          : undefined;
+      const sparePartsCost = parseMoneyAmount(values.spare_parts_cost);
+
+      if (
+        sparePartsCost != null &&
+        fctAvailable != null &&
+        exceedsFctAvailable(sparePartsCost, fctAvailable)
+      ) {
+        const message = `El monto (${formatMoneyUsd(sparePartsCost)} USD) supera el FCT disponible (${formatMoneyUsd(fctAvailable)} USD).`;
+        form.setError('spare_parts_cost', { message });
+        toast({
+          variant: 'destructive',
+          title: 'FCT insuficiente',
+          description: message,
+        });
+        return;
+      }
 
       await hvacService.createMaintenanceLog({
         equipment_qr_uuid: uuid,
+        maintenance_type_id: Number(values.maintenance_type_id),
         service_type: values.service_type,
         description: values.description || undefined,
         spare_parts_cost: sparePartsCost,
@@ -194,12 +227,19 @@ export default function HvacMaintenanceRegisterPage() {
       await queryClient.invalidateQueries({ queryKey: ['hvac-scan', uuid] });
       await queryClient.invalidateQueries({ queryKey: ['client-dashboard'] });
       form.reset(emptyHvacMaintenanceFieldDefaults() as unknown as HvacMaintenanceRegisterFormData);
+      setLeaveOpen(false);
+      setLeaveTo(null);
+      await waitForDomSettled();
       navigate(`/scan/${uuid}`, { replace: true });
     } catch (error) {
+      const fieldErrors = getApiFieldErrors(error);
+      if (fieldErrors?.spare_parts_cost) {
+        form.setError('spare_parts_cost', { message: fieldErrors.spare_parts_cost });
+      }
       toast({
         variant: 'destructive',
         title: 'No se pudo registrar',
-        description: error instanceof Error ? error.message : 'Intenta nuevamente.',
+        description: getApiErrorMessage(error, 'Intenta nuevamente.'),
       });
     }
   };
@@ -301,6 +341,26 @@ export default function HvacMaintenanceRegisterPage() {
               <CardDescription>Tipo de intervención y descripción administrativa.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {isEquipmentDetails(scan) && (scan.fct_remaining != null || scan.fondo_de_cobertura != null) ? (
+                <div className="rounded-lg border border-primary/30 bg-primary/5 px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-medium text-foreground">Fondo de cobertura disponible (FCT)</p>
+                  <p className="text-lg font-bold text-primary tabular-nums">
+                    ${(scan.fct_remaining ?? 0).toFixed(2)}
+                  </p>
+                </div>
+              ) : null}
+              <ValidatedSelect
+                label="Tipo de mantenimiento"
+                name="maintenance_type_id"
+                control={form.control}
+                required
+                placeholder="Selecciona correctivo o preventivo"
+                options={maintenanceTypeOptions}
+              />
+              <p className="text-xs text-muted-foreground -mt-2">
+                Preventivo reprograma la próxima visita según la frecuencia del plan. Correctivo no modifica las fechas
+                del equipo.
+              </p>
               <ValidatedInput label="Tipo de servicio" name="service_type" control={form.control} required />
               <ValidatedTextarea label="Descripcion" name="description" control={form.control} rows={3} />
               <ValidatedInput
@@ -310,10 +370,16 @@ export default function HvacMaintenanceRegisterPage() {
                 type="number"
                 step="0.01"
                 min="0"
+                max={fctAvailable != null && fctAvailable > 0 ? fctAvailable : undefined}
                 placeholder="0.00"
               />
               <p className="text-xs text-muted-foreground -mt-2">
                 Monto a descontar del Fondo de Cobertura Total del cliente cuando se usan piezas en la reparación.
+                {fctAvailable != null && fctAvailable > 0
+                  ? ` Máximo disponible: ${formatMoneyUsd(fctAvailable)} USD.`
+                  : fctAvailable === 0
+                    ? ' No hay saldo FCT disponible para descontar.'
+                    : null}
               </p>
             </CardContent>
           </Card>
@@ -437,8 +503,9 @@ export default function HvacMaintenanceRegisterPage() {
               ) : (
                 <>
                   <span className="font-medium">El botón de envío está bloqueado</span> hasta que indiques el{' '}
-                  <span className="font-medium text-foreground">tipo de servicio</span> en la tarjeta superior (dato
-                  obligatorio). Luego podrás enviar todo junto.
+                  <span className="font-medium text-foreground">tipo de mantenimiento</span> y el{' '}
+                  <span className="font-medium text-foreground">tipo de servicio</span> en la tarjeta superior (datos
+                  obligatorios). Luego podrás enviar todo junto.
                 </>
               )}
             </p>
@@ -449,7 +516,7 @@ export default function HvacMaintenanceRegisterPage() {
               <Button
                 type="submit"
                 disabled={!canSubmit}
-                title={!canSubmit ? 'Indica el tipo de servicio arriba para habilitar el envío' : undefined}
+                title={!canSubmit ? 'Indica tipo de mantenimiento y tipo de servicio arriba para habilitar el envío' : undefined}
                 className="min-w-[12rem] font-semibold"
               >
                 {form.formState.isSubmitting ? 'Enviando…' : 'Enviar informe completo'}
@@ -475,8 +542,8 @@ export default function HvacMaintenanceRegisterPage() {
                 </>
               ) : (
                 <>
-                  Completa <span className="font-semibold text-foreground">tipo de servicio</span> arriba para
-                  habilitar el envío.
+                  Completa <span className="font-semibold text-foreground">tipo de mantenimiento</span> y{' '}
+                  <span className="font-semibold text-foreground">tipo de servicio</span> arriba para habilitar el envío.
                 </>
               )}
             </p>
@@ -494,7 +561,7 @@ export default function HvacMaintenanceRegisterPage() {
                 form="hvac-maint-register-form"
                 className="flex-[1.35] font-semibold"
                 disabled={!canSubmit}
-                title={!canSubmit ? 'Indica el tipo de servicio arriba' : undefined}
+                title={!canSubmit ? 'Indica tipo de mantenimiento y tipo de servicio arriba' : undefined}
               >
                 {form.formState.isSubmitting ? 'Enviando…' : 'Enviar todo'}
               </Button>

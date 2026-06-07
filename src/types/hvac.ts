@@ -54,10 +54,19 @@ export type EquipmentDiagnosticApi = {
   service_observations?: string | null;
 };
 
+export type MaintenanceType = {
+  id: number;
+  name: string;
+  slug: 'correctivo' | 'preventivo' | string;
+};
+
 export type MaintenanceLog = {
   id?: number;
+  maintenance_type?: MaintenanceType | null;
   service_type: string;
   description?: string | null;
+  /** Monto descontado del FCT por repuestos usados. */
+  spare_parts_cost?: number;
   photos?: string[];
   technician?: {
     name?: string;
@@ -69,6 +78,10 @@ export type MaintenanceLog = {
 
 export type EquipmentDetails = {
   qr_uuid: string;
+  /** Saldo restante del Fondo de Cobertura Total (FCT). */
+  fct_remaining?: number;
+  fondo_de_cobertura?: number;
+  fct_deducted?: number;
   equipment: {
     id?: number;
     brand: string;
@@ -151,6 +164,9 @@ export type ClientDashboardResponse = {
   equipments: ClientEquipmentSummary[];
   recent_maintenance: Array<{
     service_type: string;
+    maintenance_type?: MaintenanceType | null;
+    description?: string | null;
+    spare_parts_cost?: number;
     created_at?: string | null;
     equipment_label: string;
     technician_name?: string | null;
@@ -188,6 +204,7 @@ export type RegisterEquipmentPayload = {
 
 export type CreateMaintenanceLogPayload = {
   equipment_qr_uuid: string;
+  maintenance_type_id: number;
   service_type: string;
   description?: string;
   photos_json?: string[];

@@ -2,7 +2,8 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import type { ClientEquipmentSummary } from '@/types/hvac';
 import { cn } from '@/lib/utils';
-import { formatMaintenanceShort, splitInstallationLocation } from './hvacEquipmentCardUtils';
+import { splitInstallationLocation } from './hvacEquipmentCardUtils';
+import { NextServiceDateBadge } from '@/components/hvac/NextServiceDateBadge';
 
 type Props = {
   item: ClientEquipmentSummary;
@@ -29,8 +30,8 @@ export function HvacEquipmentSummaryCard({ item, isActive = false, isScanned = f
     >
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         <p className="text-lg font-bold leading-tight truncate">{primary}</p>
-        <p className="text-lg font-bold leading-tight text-right truncate">
-          FCT: {fctRemaining.toFixed(0)} $
+        <p className="text-lg font-bold leading-tight text-right truncate tabular-nums">
+          FCT: {fctRemaining.toFixed(2)} $
         </p>
 
         {secondary ? (
@@ -55,9 +56,9 @@ export function HvacEquipmentSummaryCard({ item, isActive = false, isScanned = f
           </Badge>
         </div>
 
-        <p className="col-span-2 text-sm font-bold mt-2">
-          Proximo Mtto {formatMaintenanceShort(item.next_service_at)}
-        </p>
+        <div className="col-span-2 mt-2">
+          <NextServiceDateBadge nextServiceAt={item.next_service_at} compactLabel />
+        </div>
       </div>
       {isScanned ? (
         <p className="mt-2 text-[11px] font-medium text-amber-700">QR escaneado</p>

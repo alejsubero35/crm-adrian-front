@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CustomButton } from '@/components/ui/custom-button';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
+import { normalizeUserRoles } from '@/contexts/authContextObj';
 import ClientDashboardPage from '@/pages/ClientDashboardPage';
 import { useUI } from '@/contexts/UIContext';
 import { useQuery } from '@tanstack/react-query';
@@ -34,6 +35,7 @@ export default function MasterDashboard() {
 function StaffMasterDashboard() {
   const { user, isDemoMode } = useDemoAuth();
   const { isMobile, isTablet } = useUI();
+  const roleLabels = normalizeUserRoles(user?.roles);
 
   const { data: dashboardData, refetch, isFetching } = useQuery({
     queryKey: ['dashboard-summary'],
@@ -368,9 +370,9 @@ function StaffMasterDashboard() {
             <div className="space-y-2">
               <p className="text-sm font-medium">Roles</p>
               <div className="flex flex-wrap gap-1">
-                {user?.roles?.map((role, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {typeof role === 'string' ? role : role.name}
+                {roleLabels.map((role) => (
+                  <Badge key={role} variant="secondary" className="text-xs">
+                    {role}
                   </Badge>
                 ))}
               </div>

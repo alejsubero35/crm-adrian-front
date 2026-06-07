@@ -9,6 +9,7 @@ import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { hvacService } from '@/services/hvac.service';
 import { HvacEquipmentSummaryCard } from '@/components/hvac/HvacEquipmentSummaryCard';
 import { formatMaintenanceShort, resolveClientDisplayName } from '@/components/hvac/hvacEquipmentCardUtils';
+import { MaintenanceSparePartsFctRow } from '@/components/hvac/MaintenanceSparePartsFctRow';
 import type { ClientEquipmentSummary } from '@/types/hvac';
 
 function deriveDashboardStats(equipments: ClientEquipmentSummary[]) {
@@ -22,8 +23,8 @@ function deriveDashboardStats(equipments: ClientEquipmentSummary[]) {
     return !Number.isNaN(next) && next - now <= thirtyDaysMs;
   }).length;
 
-  const monthlyFromPlans = equipments.reduce(
-    (sum, eq) => sum + (eq.monthly_amount ?? 0),
+  const monthlyFromActiveProtection = equipments.reduce(
+    (sum, eq) => sum + (eq.protection_active ? (eq.monthly_amount ?? 0) : 0),
     0
   );
 
@@ -31,7 +32,7 @@ function deriveDashboardStats(equipments: ClientEquipmentSummary[]) {
     equipments_count: equipments.length,
     protection_active_count: equipments.filter((eq) => eq.protection_active).length,
     maintenance_due_count: maintenanceDueCount,
-    monthly_investment: monthlyFromPlans,
+    monthly_investment: monthlyFromActiveProtection,
   };
 }
 
@@ -135,7 +136,8 @@ export default function ClientDashboardPage() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Inversión mensual</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">${monthlyInvestment.toFixed(0)}</p>
+              <p className="text-3xl font-bold tabular-nums">${monthlyInvestment.toFixed(2)}</p>
+              <p className="text-xs text-muted-foreground mt-1">Suma de cuotas con protección activa</p>
             </CardContent>
           </Card>
         </div>
@@ -186,7 +188,7 @@ export default function ClientDashboardPage() {
           ) : (
             <div className="space-y-3">
               {data?.recent_maintenance?.map((log, index) => (
-                <div key={`${log.created_at}-${index}`} className="rounded-lg border p-3 text-sm">
+                <div key={`${log.created_at}-${index}`} className="rounded-lg border p-3 text-sm space-y-2">
                   <p className="font-medium">{log.service_type}</p>
                   <p className="text-xs text-muted-foreground">
                     {log.equipment_label} · {formatMaintenanceShort(log.created_at)}
@@ -194,6 +196,8 @@ export default function ClientDashboardPage() {
                   {log.technician_name ? (
                     <p className="text-xs text-muted-foreground">Técnico: {log.technician_name}</p>
                   ) : null}
+                  {log.description ? <p className="text-sm">{log.description}</p> : null}
+                  <MaintenanceSparePartsFctRow cost={log.spare_parts_cost} />
                 </div>
               ))}
             </div>

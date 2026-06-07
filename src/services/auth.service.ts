@@ -1,5 +1,5 @@
 import { apiService } from './api.service';
-import type { User } from '@/contexts/authContextObj';
+import { normalizeUserRoles, type User } from '@/contexts/authContextObj';
 
 const isTenantHost = (): boolean => {
   if (typeof window === 'undefined') return false;
@@ -50,7 +50,11 @@ const normalizeUser = (raw: unknown): User => {
   const fallback = built || u?.username || u?.email || '';
   const name = String(u?.name ?? u?.customer_name ?? fallback).trim() || undefined;
 
-  return { ...u, name };
+  return {
+    ...u,
+    name,
+    roles: normalizeUserRoles(u?.roles),
+  };
 };
 
 export const authService = {
@@ -202,7 +206,7 @@ export const authService = {
             'X-Requested-With': 'XMLHttpRequest'
           }
         });
-        return user;
+        return normalizeUser(user);
   } catch (error) {
         // Si el error es 401, cerrar sesión automáticamente
         // Si el error es 401, cerrar sesión automáticamente

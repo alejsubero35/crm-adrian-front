@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Navigate, Link } from 'react-router-dom';
 import { useDemoAuth } from './DemoAuthContext';
 import { getHomePathForRoles } from '@/config/routes';
+import { normalizeUserRoles } from '@/contexts/authContextObj';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
@@ -39,7 +40,7 @@ export default function LoginPage() {
   } = useForm<LoginFormData>();
 
   if (isAuthenticated) {
-    return <Navigate to={getHomePathForRoles(user?.roles ?? [])} replace />;
+    return <Navigate to={getHomePathForRoles(normalizeUserRoles(user?.roles))} replace />;
   }
 
   const onSubmit = async (data: LoginFormData) => {

@@ -18,6 +18,9 @@ export function getApiErrorMessage(error: unknown, fallback = 'Ocurrió un error
     const serialMsg = errors.serial_number?.[0];
     if (serialMsg) return serialMsg;
 
+    const sparePartsMsg = errors.spare_parts_cost?.[0];
+    if (sparePartsMsg) return sparePartsMsg;
+
     const first = Object.values(errors)
       .flat()
       .find((msg) => typeof msg === 'string' && msg.trim().length > 0);

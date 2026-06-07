@@ -1,16 +1,20 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Snowflake, MapPin, Calendar, Wrench } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Snowflake, MapPin, Wrench } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/loading-spinner';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { hvacService } from '@/services/hvac.service';
 import type { ClientPortalResponse, EquipmentDetails } from '@/types/hvac';
 import { cn } from '@/lib/utils';
 import { listHvacDiagnosticMeasurements } from '@/utils/hvacDiagnosticFields';
 import { HvacEquipmentSummaryCard } from '@/components/hvac/HvacEquipmentSummaryCard';
-import { formatMaintenanceShort, resolveClientDisplayName } from '@/components/hvac/hvacEquipmentCardUtils';
+import { MaintenanceSparePartsFctRow } from '@/components/hvac/MaintenanceSparePartsFctRow';
+import { MaintenanceTypeBadge } from '@/components/hvac/MaintenanceTypeBadge';
+import { normalizeMaintenanceLogs } from '@/components/hvac/maintenanceLogUtils';
+import { NextServiceDateBadge } from '@/components/hvac/NextServiceDateBadge';
+import { resolveClientDisplayName } from '@/components/hvac/hvacEquipmentCardUtils';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 
 const statusLabels: Record<string, string> = {
@@ -53,7 +57,7 @@ function formatDateTime(value?: string | null) {
 
 function EquipmentDetailPanel({ detail }: { detail: EquipmentDetails }) {
   const eq = detail.equipment;
-  const logs = detail.maintenance_logs ?? [];
+  const logs = normalizeMaintenanceLogs(detail.maintenance_logs);
 
   return (
     <div className="space-y-4">
@@ -102,13 +106,9 @@ function EquipmentDetailPanel({ detail }: { detail: EquipmentDetails }) {
             <br />
             {eq.installation_location || '—'}
           </p>
-          <p className="flex items-start gap-1.5 sm:col-span-2">
-            <Calendar className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
-            <span>
-              <span className="font-medium text-muted-foreground">Próximo servicio: </span>
-              {formatDate(eq.next_service_at)}
-            </span>
-          </p>
+          <div className="sm:col-span-2">
+            <NextServiceDateBadge nextServiceAt={eq.next_service_at} />
+          </div>
           {detail.customer?.address ? (
             <p className="flex items-start gap-1.5 sm:col-span-2">
               <MapPin className="h-4 w-4 shrink-0 text-muted-foreground mt-0.5" />
@@ -136,13 +136,17 @@ function EquipmentDetailPanel({ detail }: { detail: EquipmentDetails }) {
                   className="rounded-lg border p-3 space-y-2"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-medium">{log.service_type}</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-medium">{log.service_type}</p>
+                      <MaintenanceTypeBadge maintenanceType={log.maintenance_type} />
+                    </div>
                     <p className="text-xs text-muted-foreground">{formatDateTime(log.created_at)}</p>
                   </div>
                   {log.technician?.name ? (
                     <p className="text-xs text-muted-foreground">Técnico: {log.technician.name}</p>
                   ) : null}
                   {log.description ? <p className="text-sm">{log.description}</p> : null}
+                  <MaintenanceSparePartsFctRow cost={log.spare_parts_cost} />
                   {log.diagnostic ? (
                     <ul className="text-xs text-muted-foreground space-y-0.5 border-t pt-2 mt-1">
                       {listHvacDiagnosticMeasurements(log.diagnostic)
@@ -167,33 +171,39 @@ function EquipmentDetailPanel({ detail }: { detail: EquipmentDetails }) {
 
 export function HvacClientPortalView({ scannedQrUuid }: Props) {
   const { user } = useDemoAuth();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [portal, setPortal] = useState<ClientPortalResponse | null>(null);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const requestIdRef = useRef(0);
 
-  const loadPortal = useCallback(
-    async (equipmentId?: number | null) => {
-      try {
-        setLoading(true);
-        const data = await hvacService.getClientPortal({
-          scanned_qr_uuid: scannedQrUuid,
-          equipment_id: equipmentId ?? undefined,
-        });
-        setPortal(data);
-        setSelectedId(data.active_equipment_id ?? null);
-      } catch (error) {
-        toast({
-          variant: 'destructive',
-          title: 'No se pudo cargar sus equipos',
-          description: error instanceof Error ? error.message : 'Intenta nuevamente.',
-        });
-      } finally {
+  const loadPortal = useCallback(async (equipmentId?: number | null) => {
+    const requestId = ++requestIdRef.current;
+
+    try {
+      setLoading(true);
+      const data = await hvacService.getClientPortal({
+        scanned_qr_uuid: scannedQrUuid,
+        equipment_id: equipmentId ?? undefined,
+      });
+
+      if (requestId !== requestIdRef.current) return;
+
+      setPortal(data);
+      setSelectedId((prev) => equipmentId ?? data.active_equipment_id ?? prev);
+    } catch (error) {
+      if (requestId !== requestIdRef.current) return;
+
+      toast({
+        variant: 'destructive',
+        title: 'No se pudo cargar sus equipos',
+        description: error instanceof Error ? error.message : 'Intenta nuevamente.',
+      });
+    } finally {
+      if (requestId === requestIdRef.current) {
         setLoading(false);
       }
-    },
-    [scannedQrUuid, toast]
-  );
+    }
+  }, [scannedQrUuid]);
 
   useEffect(() => {
     void loadPortal();

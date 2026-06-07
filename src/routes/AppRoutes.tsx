@@ -1,7 +1,8 @@
 import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useDemoAuth } from '@/features/auth/DemoAuthContext';
 import { getAllRoutes, getHomePathForRoles, hasRouteAccess } from '@/config/routes';
+import { normalizeUserRoles } from '@/contexts/authContextObj';
 import { MainLayout } from '@/components/Layout/MainLayout';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -36,7 +37,7 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Route error:', error, errorInfo);
+    console.error('Route error:', error.message, error, errorInfo);
   }
 
   render() {
@@ -44,11 +45,18 @@ class ErrorBoundary extends React.Component<
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] p-4">
           <h2 className="text-2xl font-semibold text-destructive mb-2">
-            Something went wrong
+            Algo salió mal
           </h2>
-          <p className="text-muted-foreground text-center">
-            {this.state.error?.message || 'An unexpected error occurred'}
+          <p className="text-muted-foreground text-center max-w-md">
+            {this.state.error?.message || 'Ocurrió un error inesperado.'}
           </p>
+          <button
+            type="button"
+            className="mt-4 text-sm font-medium text-primary underline-offset-4 hover:underline"
+            onClick={() => this.setState({ hasError: false, error: undefined })}
+          >
+            Reintentar
+          </button>
         </div>
       );
     }
@@ -58,8 +66,9 @@ class ErrorBoundary extends React.Component<
 }
 
 export function AppRoutes() {
+  const location = useLocation();
   const { isAuthenticated, user } = useDemoAuth();
-  const userRoles = user?.roles || [];
+  const userRoles = normalizeUserRoles(user?.roles);
   const userPermissions = user?.permissions || [];
   const allRoutes = getAllRoutes();
 
@@ -118,7 +127,7 @@ export function AppRoutes() {
           key={path}
           path={path}
           element={
-            <ErrorBoundary>
+            <ErrorBoundary key={`${path}-${location.pathname}`}>
               <Suspense fallback={<RouteLoadingFallback />}>
                 <Component />
               </Suspense>
@@ -136,7 +145,7 @@ export function AppRoutes() {
         element={
           <ProtectedRoute>
             <MainLayout>
-              <ErrorBoundary>
+              <ErrorBoundary key={`${path}-${location.pathname}`}>
                 <Suspense fallback={<RouteLoadingFallback />}>
                   <Component />
                 </Suspense>
@@ -174,7 +183,7 @@ export function withRouteProtection<P extends object>(
 ) {
   return function ProtectedComponent(props: P) {
     const { isAuthenticated, user } = useDemoAuth();
-    const userRoles = user?.roles || [];
+    const userRoles = normalizeUserRoles(user?.roles);
     
     // Check authentication
     if (!isAuthenticated) {
@@ -199,7 +208,7 @@ export function withRouteProtection<P extends object>(
 // Hook for checking route access
 export function useRouteAccess() {
   const { user } = useDemoAuth();
-  const userRoles = user?.roles || [];
+  const userRoles = normalizeUserRoles(user?.roles);
   
   const checkAccess = (requiredRoles?: string[]) => {
     if (!requiredRoles || requiredRoles.length === 0) return true;

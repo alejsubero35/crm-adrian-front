@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { authService } from '@/services/auth.service';
 import { apiService } from '@/services/api.service';
 import { setApiBaseTenant, setApiBaseCentral, setApiBaseFromLocation } from '@/config/api';
-import { AuthContext, User, AuthContextType } from './authContextObj';
+import { AuthContext, User, AuthContextType, normalizeUserRoles } from './authContextObj';
 import { ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { getHomePathForRoles } from '@/config/routes';
@@ -80,7 +80,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 	const [user, setUser] = useState<User | null>(() => {
 		try {
 			const raw = localStorage.getItem(STORAGE_USER_KEY);
-			return raw ? (JSON.parse(raw) as User) : null;
+			if (!raw) return null;
+			const parsed = JSON.parse(raw) as User;
+			return { ...parsed, roles: normalizeUserRoles(parsed.roles) };
 		} catch {
 			return null;
 		}

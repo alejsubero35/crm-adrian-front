@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Camera, Wrench } from 'lucide-react';
-import QrScanner from 'qr-scanner';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,12 @@ import {
 } from '@/validations/hvac.schema';
 import { getApiErrorMessage, getApiFieldErrors } from '@/lib/apiErrors';
 import { listHvacDiagnosticMeasurements } from '@/utils/hvacDiagnosticFields';
-import { HvacClientPortalView } from '@/components/hvac/HvacClientPortalView';
+import { MaintenanceSparePartsFctRow } from '@/components/hvac/MaintenanceSparePartsFctRow';
+import { MaintenanceTypeBadge } from '@/components/hvac/MaintenanceTypeBadge';
+import { NextServiceDateBadge } from '@/components/hvac/NextServiceDateBadge';
+import { createSafeQrScanner, safeDestroyQrScanner } from '@/lib/qrScannerCleanup';
+import { waitForDomSettled } from '@/lib/domTiming';
+import type QrScanner from 'qr-scanner';
 
 const statusStyle: Record<string, string> = {
   operational: 'bg-emerald-100 text-emerald-800',
@@ -50,7 +54,8 @@ export default function HvacScanPage() {
   const [isScannerLoading, setIsScannerLoading] = useState(false);
   const [scannerError, setScannerError] = useState<string | null>(null);
   const videoRef = React.useRef<HTMLVideoElement | null>(null);
-  const scannerRef = React.useRef<QrScanner | null>(null);
+  const scannerRef = useRef<QrScanner | null>(null);
+  const scanHandledRef = useRef(false);
   const canManageEquipment = hasRole('admin') || hasRole('tecnico') || hasRole('técnico') || hasPermission('equipments.create');
   const canCreateMaintenance =
     hasRole('admin') || hasRole('tecnico') || hasRole('técnico') || hasPermission('maintenance.create');
@@ -136,6 +141,9 @@ export default function HvacScanPage() {
   useEffect(() => {
     if (!showMobileScanner) return;
 
+    scanHandledRef.current = false;
+    let cancelled = false;
+
     const tryExtractUuid = (value: string): string | null => {
       const trimmed = value.trim();
       if (!trimmed) return null;
@@ -151,51 +159,42 @@ export default function HvacScanPage() {
 
     const startScanner = async () => {
       const videoEl = videoRef.current;
-      if (!videoEl) {
-        setScannerError('No se pudo inicializar la vista de cámara.');
+      if (!videoEl || cancelled) {
+        if (!cancelled) setScannerError('No se pudo inicializar la vista de cámara.');
         return;
       }
 
       try {
         setScannerError(null);
         setIsScannerLoading(true);
-        const scanner = new QrScanner(
-          videoEl,
-          (result) => {
-            const rawValue = typeof result === 'string' ? result : result.data;
-            const nextUuid = tryExtractUuid(rawValue);
-            if (nextUuid) {
-              void scanner.stop();
-              navigate(`/scan/${nextUuid}`);
-            }
-          },
-          {
-            preferredCamera: 'environment',
-            returnDetailedScanResult: true,
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-            maxScansPerSecond: 8,
-          }
-        );
+
+        const scanner = createSafeQrScanner(videoEl, (rawValue) => {
+          if (cancelled || scanHandledRef.current) return;
+          const nextUuid = tryExtractUuid(rawValue);
+          if (!nextUuid) return;
+
+          scanHandledRef.current = true;
+          navigate(`/scan/${nextUuid}`);
+        });
 
         scannerRef.current = scanner;
         await scanner.start();
       } catch (error) {
-        setScannerError(error instanceof Error ? error.message : 'No se pudo abrir la cámara.');
+        if (!cancelled) {
+          setScannerError(error instanceof Error ? error.message : 'No se pudo abrir la cámara.');
+        }
       } finally {
-        setIsScannerLoading(false);
+        if (!cancelled) setIsScannerLoading(false);
       }
     };
 
     void startScanner();
 
     return () => {
+      cancelled = true;
       const scanner = scannerRef.current;
       scannerRef.current = null;
-      if (scanner) {
-        void scanner.stop();
-        scanner.destroy();
-      }
+      void safeDestroyQrScanner(scanner);
     };
   }, [showMobileScanner, navigate]);
 
@@ -241,6 +240,7 @@ export default function HvacScanPage() {
       });
       toast({ variant: 'success', title: 'Equipo vinculado', description: 'Redirigiendo al dashboard del equipo...' });
       await fetchScan();
+      await waitForDomSettled();
       navigate(`/scan/${uuid}`, { replace: true });
     } catch (error) {
       const fieldErrors = getApiFieldErrors(error);
@@ -268,16 +268,6 @@ export default function HvacScanPage() {
     selectedLogIndex !== null && scanData?.maintenance_logs
       ? scanData.maintenance_logs[selectedLogIndex]
       : null;
-
-  const formatDate = (value?: string | null) => {
-    if (!value) return 'No definido';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return 'No definido';
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = String(date.getFullYear());
-    return `${day}-${month}-${year}`;
-  };
 
   const formatDateTime = (value?: string | null) => {
     if (!value) return 'No definido';
@@ -313,7 +303,13 @@ export default function HvacScanPage() {
                 {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
               </Button>
             ) : !isAvailable && canCreateMaintenance ? (
-              <Button onClick={() => navigate(`/scan/${uuid}/registrar-servicio`)}>
+              <Button
+                onClick={async () => {
+                  setIsLogDetailModalOpen(false);
+                  await waitForDomSettled();
+                  navigate(`/scan/${uuid}/registrar-servicio`);
+                }}
+              >
                 <Wrench className="h-4 w-4 mr-2" />
                 Registrar nuevo servicio
               </Button>
@@ -490,12 +486,25 @@ export default function HvacScanPage() {
         <>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-start justify-between gap-3">
                 <CardTitle>Estado del equipo</CardTitle>
-                <Badge className={statusStyle[scanData.equipment.current_status] || 'bg-slate-200 text-slate-800'}>
-                  {scanData.equipment.current_status}
-                </Badge>
+                <div className="flex flex-col items-end gap-2 shrink-0">
+                  <span className="rounded-md border-2 border-primary/40 bg-primary/5 px-3 py-1.5 text-sm font-bold text-primary tabular-nums">
+                    FCT: {(scanData.fct_remaining ?? 0).toFixed(2)}$
+                  </span>
+                  <Badge className={statusStyle[scanData.equipment.current_status] || 'bg-slate-200 text-slate-800'}>
+                    {scanData.equipment.current_status}
+                  </Badge>
+                </div>
               </div>
+              {scanData.fondo_de_cobertura != null && scanData.fondo_de_cobertura > 0 ? (
+                <p className="text-xs text-muted-foreground pt-1">
+                  Fondo inicial: ${scanData.fondo_de_cobertura.toFixed(2)}
+                  {(scanData.fct_deducted ?? 0) > 0
+                    ? ` · Descontado: $${(scanData.fct_deducted ?? 0).toFixed(2)}`
+                    : null}
+                </p>
+              ) : null}
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p><span className="font-medium">Marca/Modelo:</span> {scanData.equipment.brand} {scanData.equipment.model}</p>
@@ -504,7 +513,9 @@ export default function HvacScanPage() {
               <p><span className="font-medium">Capacidad:</span> {scanData.equipment.capacity}</p>
               <p><span className="font-medium">Gas:</span> {scanData.equipment.refrigerant_type}</p>
               <p><span className="font-medium">Ubicación:</span> {scanData.equipment.installation_location || '—'}</p>
-              <p><span className="font-medium">Proximo servicio:</span> {formatDate(scanData.equipment.next_service_at)}</p>
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <NextServiceDateBadge nextServiceAt={scanData.equipment.next_service_at} />
+              </div>
               <p><span className="font-medium">Cliente:</span> {scanData.customer?.name || 'Sin cliente'}</p>
             </CardContent>
           </Card>
@@ -521,7 +532,10 @@ export default function HvacScanPage() {
                       <div key={`${log.created_at ?? 'log'}-${index}`} className="relative pl-5">
                         <span className="absolute left-0 top-2 h-2 w-2 rounded-full bg-primary" />
                         <div className="rounded-lg border p-3">
-                          <p className="font-medium">{log.service_type}</p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-medium">{log.service_type}</p>
+                            <MaintenanceTypeBadge maintenanceType={log.maintenance_type} />
+                          </div>
                           <p className="text-xs text-muted-foreground">{formatDateTime(log.created_at)}</p>
                           {log.description ? <p className="text-sm mt-1">{log.description}</p> : null}
                           {log.technician?.name ? (
@@ -560,7 +574,14 @@ export default function HvacScanPage() {
             {registering ? 'Vinculando equipo...' : 'Vincular equipo'}
           </Button>
         ) : !isAvailable && canCreateMaintenance ? (
-          <Button className="w-full h-12" onClick={() => navigate(`/scan/${uuid}/registrar-servicio`)}>
+          <Button
+            className="w-full h-12"
+            onClick={async () => {
+              setIsLogDetailModalOpen(false);
+              await waitForDomSettled();
+              navigate(`/scan/${uuid}/registrar-servicio`);
+            }}
+          >
             <Wrench className="h-4 w-4 mr-2" />
             Registrar nuevo servicio
           </Button>
@@ -580,11 +601,20 @@ export default function HvacScanPage() {
       >
         {selectedLog ? (
           <div className="space-y-3 text-sm">
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="font-medium"><strong>Tipo de mantenimiento:</strong></span>
+              {selectedLog.maintenance_type?.name ? (
+                <MaintenanceTypeBadge maintenanceType={selectedLog.maintenance_type} />
+              ) : (
+                'No indicado'
+              )}
+            </p>
             <p><span className="font-medium"><strong>Tipo de Servicio:</strong></span> {selectedLog.service_type}</p>
             <p><span className="font-medium"><strong>Fecha y Hora:</strong></span> {formatDateTime(selectedLog.created_at)}</p>
             <p><span className="font-medium"><strong>Técnico:</strong></span> {selectedLog.technician?.name || 'No asignado'}</p>
             <p><span className="font-medium"><strong>Correo Técnico:</strong></span> {selectedLog.technician?.email || 'No disponible'}</p>
             <p><span className="font-medium"><strong>Descripción:</strong></span> {selectedLog.description || 'Sin descripción'}</p>
+            <MaintenanceSparePartsFctRow cost={selectedLog.spare_parts_cost} />
             <p><span className="font-medium"><strong>Fotos:</strong></span> {(selectedLog.photos?.length ?? 0) > 0 ? selectedLog.photos?.join(', ') : 'Sin fotos'}</p>
             {selectedLog.diagnostic ? (
               <div className="space-y-1 border-t pt-3 mt-1">
