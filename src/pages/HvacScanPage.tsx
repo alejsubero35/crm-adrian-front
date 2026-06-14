@@ -24,6 +24,7 @@ import { listHvacDiagnosticMeasurements } from '@/utils/hvacDiagnosticFields';
 import { MaintenanceSparePartsFctRow } from '@/components/hvac/MaintenanceSparePartsFctRow';
 import { MaintenanceTypeBadge } from '@/components/hvac/MaintenanceTypeBadge';
 import { NextServiceDateBadge } from '@/components/hvac/NextServiceDateBadge';
+import { HvacClientPortalView } from '@/components/hvac/HvacClientPortalView';
 import { createSafeQrScanner, safeDestroyQrScanner } from '@/lib/qrScannerCleanup';
 import { waitForDomSettled } from '@/lib/domTiming';
 import type QrScanner from 'qr-scanner';
